@@ -94,19 +94,22 @@ export const MAPA_PRODUCAO = {
 
 // LOJAS NÃO CADASTRADAS — planilha de lojas candidatas (ainda não clientes),
 // usada para levantar o potencial de uma região e embasar a contratação de um novo GCM.
-// Aceita nomes de coluna parecidos com os do arquivo Potencial, já que normalmente
-// vem da mesma fonte/base de mercado, só que filtrada para lojas sem DN/GCM ainda.
+// Usa exatamente o mesmo arquivo/estrutura do Potencial (55 colunas), mas só
+// aproveitamos as colunas B, C, H, I, K, L, N, P, U, W, AJ, BB — pode subir o
+// arquivo inteiro sem cortar nada, o sistema busca só o que precisa pelo nome do cabeçalho.
 export const MAPA_NAO_CADASTRADAS = {
-  cnpj_loja: ['CNPJ_LOJA', 'CNPJ'],
-  razao_social: ['RAZAO_SOCIAL', 'RAZÃO_SOCIAL', 'RAZAO_LOJA', 'RAZÃO_LOJA', 'RAZAO SOCIAL'],
-  endereco: ['ENDERECO', 'Endereço'],
-  numero: ['NUM_LOJA', 'Nº', 'N°', 'No', 'Numero'],
-  bairro: ['BAIRRO'],
-  cep: ['CEP'],
-  zona: ['ZONA', 'REGIAO', 'REGIÃO'],
-  potencial_categoria: ['PORTE_LOJA', 'POTENCIAL', 'POTENCIAL_CATEGORIA'],
-  volume_mercado: ['VOL_LEVES_PERFIL_CB', 'VOLUME_MERCADO', 'VOL_LEVES'],
-  ctos_merc: ['QT_LEVES_PERFIL_CB', 'CTOS_MERC', 'QT_LEVES'],
+  cnpj_loja: ['CNPJ_LOJA', 'CNPJ'],                                    // coluna B
+  razao_social: ['RAZAO_LOJA', 'RAZÃO_LOJA', 'RAZAO_SOCIAL', 'RAZÃO_SOCIAL'], // coluna C
+  endereco: ['ENDERECO', 'Endereço'],                                  // coluna H
+  numero: ['NUM_LOJA', 'Nº', 'N°', 'No', 'Numero'],                    // coluna I
+  bairro: ['BAIRRO'],                                                  // coluna K
+  cidade: ['CIDADE'],                                                  // coluna L
+  cep: ['CEP'],                                                        // coluna N
+  microrregiao: ['MICRORREGIAO', 'MICRORREGIÃO'],                      // coluna P
+  status_loja: ['STATUS_LOJA'],                                        // coluna U
+  potencial_categoria: ['PORTE_LOJA', 'POTENCIAL', 'POTENCIAL_CATEGORIA'], // coluna W
+  volume_mercado: ['VOL_LEVES_PERFIL_CB', 'VOLUME_MERCADO'],           // coluna AJ
+  ctos_merc: ['QT_LEVES_USADOS_PERFIL_CB', 'CTOS_MERC'],               // coluna BB
 }
 
 export const CAMPOS_NUMERICOS_NAO_CADASTRADAS = ['volume_mercado', 'ctos_merc']

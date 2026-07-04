@@ -66,11 +66,13 @@ export default function TabelaNaoCadastradas({
               <th>Endereço</th>
               <th>Nº</th>
               <th>Bairro</th>
+              <th>Cidade</th>
               <th>CEP</th>
-              <th>Zona</th>
+              <th>Microrregião</th>
+              <th>Status</th>
               <th>Potencial</th>
               <th>Volume Mercado</th>
-              <th>Ctos Merc</th>
+              <th>Ctos Merc (usados)</th>
               <th>
                 <div className="cabecalho-nova-area">
                   <span>Nova Área</span>
@@ -95,8 +97,10 @@ export default function TabelaNaoCadastradas({
                 <td className="celula-truncar" title={l.endereco}>{l.endereco}</td>
                 <td>{l.numero}</td>
                 <td className="celula-truncar" title={l.bairro}>{l.bairro}</td>
+                <td className="celula-truncar" title={l.cidade}>{l.cidade}</td>
                 <td>{l.cep}</td>
-                <td className="celula-truncar" title={l.zona}>{l.zona}</td>
+                <td className="celula-truncar" title={l.microrregiao}>{l.microrregiao}</td>
+                <td className="celula-truncar" title={l.status_loja}>{l.status_loja}</td>
                 <td><BadgePotencial valor={l.potencial_categoria} /></td>
                 <td>{formatarMoeda(l.volume_mercado)}</td>
                 <td>{formatarNumero(l.ctos_merc)}</td>
