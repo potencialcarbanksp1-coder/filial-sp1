@@ -81,6 +81,7 @@ const LARGURA_CTOS = 70
 const LARGURA_META = 120
 const LARGURA_GAP = 120
 const LARGURA_LM_CONSIG = 90
+const LARGURA_NOVA_AREA = 90
 
 // Soma a largura de todas as colunas congeladas ANTES da coluna informada,
 // para calcular a posição "left" correta de cada uma (efeito empilhado, como no Sheets).
@@ -121,7 +122,7 @@ function calcularAlertaProducao(linha) {
   return null
 }
 
-export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig }) {
+export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig, alternarNovaArea }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
   const refTabela = useRef(null)
@@ -196,6 +197,7 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
             <col style={{ width: LARGURA_META }} />
             <col style={{ width: LARGURA_GAP }} />
             <col style={{ width: LARGURA_LM_CONSIG }} />
+            <col style={{ width: LARGURA_NOVA_AREA }} />
           </colgroup>
           <thead>
             <tr>
@@ -227,6 +229,7 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
               <th>Meta CDC Prem</th>
               <th>GAP</th>
               <th>LM Consig</th>
+              <th>Nova Área</th>
             </tr>
           </thead>
           <tbody>
@@ -259,6 +262,14 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
                   </td>
                   <td>
                     <IconeLmConsig dn={l.codigo} ativo={l.lm_consig_ativo} aoAlternar={alternarLmConsig} />
+                  </td>
+                  <td style={{ textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!l.incluido_nova_area}
+                      onChange={() => alternarNovaArea(l.codigo, l)}
+                      title="Marcar esta loja para a análise de Nova Área"
+                    />
                   </td>
                 </tr>
               )

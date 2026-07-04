@@ -1,6 +1,6 @@
 import TabelaPainel from '../components/TabelaPainel.jsx'
 
-export default function PaginaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig }) {
+export default function PaginaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig, alternarNovaArea }) {
   return (
     <div className="bloco bloco-tabela-principal">
       <TabelaPainel
@@ -10,6 +10,7 @@ export default function PaginaPainel({ linhas, metaMeses, filtrosColuna, definir
         definirFiltroColuna={definirFiltroColuna}
         salvarMeta={salvarMeta}
         alternarLmConsig={alternarLmConsig}
+        alternarNovaArea={alternarNovaArea}
       />
     </div>
   )

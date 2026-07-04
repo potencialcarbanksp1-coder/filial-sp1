@@ -1,12 +1,14 @@
 const ITENS_MENU = [
   { id: 'painel', rotulo: 'Painel', icone: '▦' },
   { id: 'dashboard', rotulo: 'Dashboard', icone: '◔' },
-  { id: 'upload', rotulo: 'Upload', icone: '↑' },
+  { id: 'nao_cadastradas', rotulo: 'Não cadastradas', icone: '＋', apenasAdmin: true },
+  { id: 'upload', rotulo: 'Upload', icone: '↑', apenasAdmin: true },
 ]
 
 export default function MenuLateral({ secaoAtiva, definirSecaoAtiva, expandido, alternarExpandido, ehAdmin }) {
-  // Visualizadores não sobem arquivos: a seção de Upload nem aparece no menu para eles.
-  const itensVisiveis = ehAdmin ? ITENS_MENU : ITENS_MENU.filter((item) => item.id !== 'upload')
+  // Visualizadores não sobem arquivos nem mexem no planejamento de Nova Área:
+  // essas seções nem aparecem no menu para eles.
+  const itensVisiveis = ehAdmin ? ITENS_MENU : ITENS_MENU.filter((item) => !item.apenasAdmin)
 
   return (
     <nav className={`menu-lateral ${expandido ? 'expandido' : 'encolhido'}`}>

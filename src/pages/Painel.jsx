@@ -2,14 +2,17 @@ import { useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useDadosPainel } from '../hooks/useDadosPainel.js'
 import { useUploads } from '../hooks/useUploads.js'
+import { useLojasNaoCadastradas } from '../hooks/useLojasNaoCadastradas.js'
 import MenuLateral from '../components/MenuLateral.jsx'
 import PaginaPainel from './PaginaPainel.jsx'
 import PaginaDashboard from './PaginaDashboard.jsx'
 import PaginaUpload from './PaginaUpload.jsx'
+import PaginaNaoCadastradas from './PaginaNaoCadastradas.jsx'
 
 export default function Painel() {
   const { perfil, ehAdmin, sair } = useAuth()
-  const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, alternarLmConsig } = useDadosPainel()
+  const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, alternarLmConsig, alternarNovaArea } = useDadosPainel()
+  const naoCadastradas = useLojasNaoCadastradas()
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
   const [confirmandoNovoMes, setConfirmandoNovoMes] = useState(null) // arquivo aguardando confirmação
   const [filtrosColuna, setFiltrosColuna] = useState({}) // { nomeCampo: valorFiltro }
@@ -19,10 +22,11 @@ export default function Painel() {
   function aoConcluirUpload(texto, ehErro = false) {
     setMensagem({ texto, ehErro })
     recarregar()
+    naoCadastradas.recarregar()
     setTimeout(() => setMensagem(null), 6000)
   }
 
-  const { processando, uploadPotencial, uploadLojas, uploadProducao, uploadNovoMes } = useUploads({ aoConcluir: aoConcluirUpload })
+  const { processando, uploadPotencial, uploadLojas, uploadProducao, uploadNovoMes, uploadNaoCadastradas } = useUploads({ aoConcluir: aoConcluirUpload })
 
   function aoEscolherArquivoNovoMes(arquivo) {
     // Pede confirmação antes de rotacionar a esteira; o upload de fato
@@ -37,13 +41,18 @@ export default function Painel() {
     uploadNovoMes(arquivo)
   }
 
+  async function aoAlternarNovaArea(dn, dadosLinha) {
+    await alternarNovaArea(dn, dadosLinha)
+    naoCadastradas.recarregar()
+  }
+
   function definirFiltroColuna(campo, valor) {
     setFiltrosColuna((atual) => ({ ...atual, [campo]: valor }))
   }
 
-  // Visualizadores não têm acesso à seção de Upload — se por algum motivo a
-  // seção ativa for "upload" e o usuário não for admin, volta para o Painel.
-  const secaoEfetiva = !ehAdmin && secaoAtiva === 'upload' ? 'painel' : secaoAtiva
+  // Visualizadores não têm acesso à seção de Upload nem à de Não cadastradas —
+  // se por algum motivo a seção ativa for uma dessas e o usuário não for admin, volta para o Painel.
+  const secaoEfetiva = !ehAdmin && (secaoAtiva === 'upload' || secaoAtiva === 'nao_cadastradas') ? 'painel' : secaoAtiva
 
   const linhasFiltradas = useMemo(() => {
     return linhasConsolidadas.filter((linha) =>
@@ -94,6 +103,16 @@ export default function Painel() {
               uploadLojas={uploadLojas}
               uploadProducao={uploadProducao}
               aoEscolherArquivoNovoMes={aoEscolherArquivoNovoMes}
+              uploadNaoCadastradas={uploadNaoCadastradas}
+            />
+          ) : secaoEfetiva === 'nao_cadastradas' ? (
+            <PaginaNaoCadastradas
+              linhas={naoCadastradas.linhas}
+              carregando={naoCadastradas.carregando}
+              alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
+              removerLinha={naoCadastradas.removerLinha}
+              potencialTotalNovaArea={naoCadastradas.potencialTotalNovaArea}
+              quantidadeSelecionada={naoCadastradas.quantidadeSelecionada}
             />
           ) : (
             <PaginaPainel
@@ -103,6 +122,7 @@ export default function Painel() {
               definirFiltroColuna={definirFiltroColuna}
               salvarMeta={salvarMeta}
               alternarLmConsig={alternarLmConsig}
+              alternarNovaArea={aoAlternarNovaArea}
             />
           )}
         </main>

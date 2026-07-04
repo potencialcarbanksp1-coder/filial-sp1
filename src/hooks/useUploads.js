@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { lerArquivoPlanilha, mapearLinha, paraNumero, paraDataISO } from '../lib/planilha'
 import {
-  MAPA_POTENCIAL, MAPA_LOJAS, MAPA_PRODUCAO, separarDealer,
-  CAMPOS_NUMERICOS_POTENCIAL, CAMPOS_NUMERICOS_PRODUCAO,
+  MAPA_POTENCIAL, MAPA_LOJAS, MAPA_PRODUCAO, MAPA_NAO_CADASTRADAS, separarDealer,
+  CAMPOS_NUMERICOS_POTENCIAL, CAMPOS_NUMERICOS_PRODUCAO, CAMPOS_NUMERICOS_NAO_CADASTRADAS,
 } from '../lib/mapaColunas'
 
 const TAMANHO_LOTE = 500 // insere em lotes para não sobrecarregar a requisição
@@ -129,6 +129,45 @@ export function useUploads({ aoConcluir }) {
     }
   }
 
+  /**
+   * Sobe a planilha de Lojas Não Cadastradas (candidatas para uma nova área).
+   * Apaga e substitui só as linhas que vieram de upload (origem = 'upload'),
+   * preservando as linhas copiadas manualmente do Painel principal
+   * (origem = 'painel'), que não vêm desse arquivo.
+   */
+  async function uploadNaoCadastradas(arquivo) {
+    setProcessando('nao_cadastradas')
+    try {
+      const linhasBrutas = await lerArquivoPlanilha(arquivo)
+      const linhas = linhasBrutas
+        .map((linha) => {
+          const mapeada = mapearLinha(linha, MAPA_NAO_CADASTRADAS)
+          if (!mapeada.cnpj_loja && !mapeada.razao_social) return null // ignora linhas vazias
+          for (const campo of CAMPOS_NUMERICOS_NAO_CADASTRADAS) {
+            mapeada[campo] = paraNumero(mapeada[campo])
+          }
+          mapeada.origem = 'upload'
+          mapeada.nova_area = false
+          return mapeada
+        })
+        .filter(Boolean)
+
+      if (linhas.length === 0) {
+        throw new Error('Nenhuma linha válida encontrada no arquivo (verifique se há CNPJ_LOJA ou RAZAO_SOCIAL preenchidos).')
+      }
+
+      const { error: erroDelete } = await supabase.from('lojas_nao_cadastradas').delete().eq('origem', 'upload')
+      if (erroDelete) throw erroDelete
+      await inserirEmLotes('lojas_nao_cadastradas', linhas)
+
+      aoConcluir?.(`Lojas não cadastradas atualizadas: ${linhas.length} registros carregados.`)
+    } catch (e) {
+      aoConcluir?.(`Erro ao subir Lojas não cadastradas: ${e.message}`, true)
+    } finally {
+      setProcessando(null)
+    }
+  }
+
   /** Lê e prepara as linhas do arquivo de Produção (lógica compartilhada pelos dois uploads acima). */
   async function prepararLinhasProducao(arquivo, posicaoMes) {
     const linhasBrutas = await lerArquivoPlanilha(arquivo)
@@ -159,5 +198,5 @@ export function useUploads({ aoConcluir }) {
     return linhas
   }
 
-  return { processando, uploadPotencial, uploadLojas, uploadProducao, uploadNovoMes }
+  return { processando, uploadPotencial, uploadLojas, uploadProducao, uploadNovoMes, uploadNaoCadastradas }
 }

@@ -92,6 +92,25 @@ export const MAPA_PRODUCAO = {
   gcm: ['GCM'],
 }
 
+// LOJAS NÃO CADASTRADAS — planilha de lojas candidatas (ainda não clientes),
+// usada para levantar o potencial de uma região e embasar a contratação de um novo GCM.
+// Aceita nomes de coluna parecidos com os do arquivo Potencial, já que normalmente
+// vem da mesma fonte/base de mercado, só que filtrada para lojas sem DN/GCM ainda.
+export const MAPA_NAO_CADASTRADAS = {
+  cnpj_loja: ['CNPJ_LOJA', 'CNPJ'],
+  razao_social: ['RAZAO_SOCIAL', 'RAZÃO_SOCIAL', 'RAZAO_LOJA', 'RAZÃO_LOJA', 'RAZAO SOCIAL'],
+  endereco: ['ENDERECO', 'Endereço'],
+  numero: ['NUM_LOJA', 'Nº', 'N°', 'No', 'Numero'],
+  bairro: ['BAIRRO'],
+  cep: ['CEP'],
+  zona: ['ZONA', 'REGIAO', 'REGIÃO'],
+  potencial_categoria: ['PORTE_LOJA', 'POTENCIAL', 'POTENCIAL_CATEGORIA'],
+  volume_mercado: ['VOL_LEVES_PERFIL_CB', 'VOLUME_MERCADO', 'VOL_LEVES'],
+  ctos_merc: ['QT_LEVES_PERFIL_CB', 'CTOS_MERC', 'QT_LEVES'],
+}
+
+export const CAMPOS_NUMERICOS_NAO_CADASTRADAS = ['volume_mercado', 'ctos_merc']
+
 // Campos que devem ser tratados como número (em vez de texto) ao importar
 export const CAMPOS_NUMERICOS_LOJAS = []
 

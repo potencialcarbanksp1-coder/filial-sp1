@@ -1,6 +1,6 @@
 import BotaoUpload from '../components/BotaoUpload.jsx'
 import BotaoBaixarModelo from '../components/BotaoBaixarModelo.jsx'
-import { MODELO_LOJAS_BASE64, MODELO_POTENCIAL_BASE64, MODELO_PRODUCAO_BASE64 } from '../lib/modelosPlanilha.js'
+import { MODELO_LOJAS_BASE64, MODELO_POTENCIAL_BASE64, MODELO_PRODUCAO_BASE64, MODELO_NAO_CADASTRADAS_BASE64 } from '../lib/modelosPlanilha.js'
 
 export default function PaginaUpload({
   metaMeses,
@@ -9,6 +9,7 @@ export default function PaginaUpload({
   uploadLojas,
   uploadProducao,
   aoEscolherArquivoNovoMes,
+  uploadNaoCadastradas,
 }) {
   return (
     <div className="pagina-secao">
@@ -73,6 +74,13 @@ export default function PaginaUpload({
           <p>Avança a esteira (M1→M2→M3, descarta M3 antigo) e insere o arquivo como o novo mês atual.</p>
           <BotaoUpload rotulo="Selecionar arquivo" processando={processando === 'NOVO_MES'} aoSelecionar={aoEscolherArquivoNovoMes} />
           <BotaoBaixarModelo base64={MODELO_PRODUCAO_BASE64} nomeArquivo="Modelo_Producao.xlsx" />
+        </div>
+
+        <div className="cartao-upload">
+          <h3>Lojas não cadastradas</h3>
+          <p>Lojas candidatas (ainda não clientes) para análise de potencial de uma nova área/GCM.</p>
+          <BotaoUpload rotulo="Selecionar arquivo" processando={processando === 'nao_cadastradas'} aoSelecionar={uploadNaoCadastradas} />
+          <BotaoBaixarModelo base64={MODELO_NAO_CADASTRADAS_BASE64} nomeArquivo="Modelo_Lojas_Nao_Cadastradas.xlsx" />
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ export function useDadosPainel() {
   const [producao, setProducao] = useState([])
   const [metaMeses, setMetaMeses] = useState({ M1: null, M2: null, M3: null })
   const [carregando, setCarregando] = useState(true)
-  const { metasPorDn, salvarMeta, alternarLmConsig } = useMetasLoja()
+  const { metasPorDn, salvarMeta, alternarLmConsig, alternarNovaArea } = useMetasLoja()
 
   const carregar = useCallback(async () => {
     setCarregando(true)
@@ -74,7 +74,7 @@ export function useDadosPainel() {
   return {
     potencial, lojas, producao, metaMeses, linhasConsolidadas, carregando,
     recarregar: carregar,
-    salvarMeta, alternarLmConsig,
+    salvarMeta, alternarLmConsig, alternarNovaArea,
   }
 }
 
@@ -127,6 +127,7 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
     const metaLoja = metasPorDn?.get(dn)
     const metaCdcPrem = metaLoja?.meta_cdc_prem ?? null
     const lmConsigAtivo = metaLoja?.lm_consig_ativo ?? false
+    const incluidoNovaArea = metaLoja?.incluido_nova_area ?? false
     // GAP = Meta - Produção do mês atual (M1). Só calculado quando há meta definida.
     const gap = metaCdcPrem !== null ? metaCdcPrem - m1.valor : null
 
@@ -151,6 +152,7 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
       meta_cdc_prem: metaCdcPrem,
       gap,
       lm_consig_ativo: lmConsigAtivo,
+      incluido_nova_area: incluidoNovaArea,
     }
   })
 }

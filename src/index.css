@@ -715,6 +715,56 @@ table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelad
   opacity: 1;
 }
 
+/* ---------- Coluna / painel "Nova Área" ---------- */
+.cabecalho-nova-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+.cabecalho-nova-area-total {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--acento, #2E75B6);
+  white-space: nowrap;
+}
+
+table.tabela-dados tbody tr.linha-selecionada-nova-area {
+  background: #EAF3E5;
+}
+
+.badge-origem {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-origem-painel {
+  background: #D9EAD3;
+  color: #274E13;
+}
+.badge-origem-upload {
+  background: #D9D9D9;
+  color: #3D3D3D;
+}
+
+.btn-remover-linha {
+  background: transparent;
+  border: none;
+  color: var(--texto-suave, #888);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-remover-linha:hover {
+  background: #FBE5D6;
+  color: #7A2E1E;
+}
+
 /* ---------- Tela de login ---------- */
 .tela-login {
   min-height: 100vh;
