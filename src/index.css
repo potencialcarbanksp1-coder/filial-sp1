@@ -735,11 +735,13 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
 
 .badge-origem {
   display: inline-block;
-  padding: 2px 8px;
+  margin-left: 6px;
+  padding: 1px 6px;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 600;
   white-space: nowrap;
+  vertical-align: middle;
 }
 .badge-origem-painel {
   background: #D9EAD3;

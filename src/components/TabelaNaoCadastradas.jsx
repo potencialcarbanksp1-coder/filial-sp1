@@ -60,8 +60,7 @@ export default function TabelaNaoCadastradas({
         <table className="tabela-dados">
           <thead>
             <tr>
-              <th>Origem</th>
-              <th>DN</th>
+              <th>CNPJ</th>
               <th>Razão social</th>
               <th>Endereço</th>
               <th>Nº</th>
@@ -87,13 +86,15 @@ export default function TabelaNaoCadastradas({
           <tbody>
             {linhas.map((l) => (
               <tr key={l.id} className={l.nova_area ? 'linha-selecionada-nova-area' : ''}>
-                <td>
-                  <span className={`badge-origem ${l.origem === 'painel' ? 'badge-origem-painel' : 'badge-origem-upload'}`}>
-                    {l.origem === 'painel' ? 'Painel' : 'Upload'}
-                  </span>
+                <td className="celula-truncar" title={l.cnpj_loja}>{l.cnpj_loja}</td>
+                <td className="celula-truncar" title={l.razao_social}>
+                  {l.razao_social}
+                  {l.origem === 'painel' && (
+                    <span className="badge-origem badge-origem-painel" title={`Copiada do Painel principal (DN ${l.dn})`}>
+                      Painel {l.dn}
+                    </span>
+                  )}
                 </td>
-                <td>{l.dn || <span className="num-vazio">—</span>}</td>
-                <td className="celula-truncar" title={l.razao_social}>{l.razao_social}</td>
                 <td className="celula-truncar" title={l.endereco}>{l.endereco}</td>
                 <td>{l.numero}</td>
                 <td className="celula-truncar" title={l.bairro}>{l.bairro}</td>
