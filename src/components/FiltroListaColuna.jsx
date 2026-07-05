@@ -32,8 +32,11 @@ export default function FiltroListaColuna({ valores, valoresFormatados, selecion
       if (refBotao.current && refBotao.current.contains(e.target)) return
       setAberto(false)
     }
-    // Fecha ao rolar (a posição calculada por coordenadas ficaria desatualizada).
-    function aoRolar() {
+    // Fecha ao rolar a PÁGINA/tabela (a posição calculada por coordenadas ficaria
+    // desatualizada) — mas ignora rolagem que aconteça dentro do próprio dropdown
+    // (ex: rolando a lista de opções), senão ele fecha sozinho ao tentar escolher.
+    function aoRolar(e) {
+      if (refDropdown.current && refDropdown.current.contains(e.target)) return
       setAberto(false)
     }
 

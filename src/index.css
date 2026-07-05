@@ -830,13 +830,13 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   color: var(--petroleo, #2B6777);
 }
 
-.btn-baixar-relatorio {
+.btn-primario.btn-baixar-relatorio {
   width: auto;
   align-self: flex-end;
   height: 34px;
   margin-top: 0;
-  padding: 0 14px;
-  font-size: 0.78rem;
+  padding: 0 12px;
+  font-size: 0.76rem;
   white-space: nowrap;
 }
 

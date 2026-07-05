@@ -90,7 +90,7 @@ export default function DashboardNovaArea({
       </div>
 
       <button type="button" className="btn-primario btn-baixar-relatorio" onClick={baixarRelatorio}>
-        ⬇ Baixar relatório Excel
+        ⬇ Relatório Excel
       </button>
     </div>
   )
