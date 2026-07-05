@@ -108,7 +108,7 @@ function valoresDistintos(linhas, campo, comparador) {
  * (dropdown com checkbox por valor, igual ao autofiltro do Excel).
  */
 export default function TabelaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha, potencialTotalNovaArea, quantidadeSelecionada,
+  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas, potencialTotalNovaArea, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -245,9 +245,16 @@ export default function TabelaNaoCadastradas({
               <th>
                 <div className="cabecalho-nova-area">
                   <span>Nova Área</span>
-                  <span className="cabecalho-nova-area-total">
-                    {quantidadeSelecionada} loja{quantidadeSelecionada === 1 ? '' : 's'} · {formatarMoeda(potencialTotalNovaArea)}
-                  </span>
+                  {quantidadeSelecionada > 0 && (
+                    <button
+                      type="button"
+                      className="btn-desmarcar-todas"
+                      onClick={desmarcarTodas}
+                      title="Desmarca a caixinha 'Nova Área' de todas as lojas de uma vez"
+                    >
+                      Desmarcar todas
+                    </button>
+                  )}
                 </div>
               </th>
               <th></th>

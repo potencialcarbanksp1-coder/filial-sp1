@@ -66,6 +66,32 @@ export function useLojasNaoCadastradas() {
     await carregar()
   }
 
+  /**
+   * Desmarca TODAS as lojas marcadas como "Nova Área" de uma vez.
+   * Para as que vieram copiadas do Painel principal (origem = 'painel'),
+   * também desmarca lá o checkbox correspondente (metas_loja), pra não
+   * ficar com o Painel principal e este painel mostrando estados diferentes.
+   */
+  async function desmarcarTodas() {
+    const dnsDoPainel = linhas.filter((l) => l.nova_area && l.origem === 'painel').map((l) => l.dn)
+
+    const { error: erroNaoCadastradas } = await supabase
+      .from('lojas_nao_cadastradas')
+      .update({ nova_area: false, atualizado_em: new Date().toISOString() })
+      .eq('nova_area', true)
+    if (erroNaoCadastradas) throw erroNaoCadastradas
+
+    if (dnsDoPainel.length > 0) {
+      const { error: erroMetas } = await supabase
+        .from('metas_loja')
+        .update({ incluido_nova_area: false, atualizado_em: new Date().toISOString() })
+        .in('dn', dnsDoPainel)
+      if (erroMetas) throw erroMetas
+    }
+
+    await carregar()
+  }
+
   // Soma o potencial (Volume Mercado) e os Ctos Merc de todas as linhas marcadas como "Nova Área".
   const potencialTotalNovaArea = useMemo(
     () => linhas.filter((l) => l.nova_area).reduce((soma, l) => soma + (Number(l.volume_mercado) || 0), 0),
@@ -84,6 +110,7 @@ export function useLojasNaoCadastradas() {
     recarregar: carregar,
     alternarNovaAreaLinha,
     removerLinha,
+    desmarcarTodas,
     potencialTotalNovaArea,
     ctosMercTotalNovaArea,
     quantidadeSelecionada,

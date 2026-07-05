@@ -2,7 +2,7 @@ import TabelaNaoCadastradas from '../components/TabelaNaoCadastradas.jsx'
 import DashboardNovaArea from '../components/DashboardNovaArea.jsx'
 
 export default function PaginaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha,
+  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas,
   potencialTotalNovaArea, ctosMercTotalNovaArea, linhasSelecionadas,
   nomeGcm, setNomeGcm, nomeArea, setNomeArea, salvarConfigNovaArea,
 }) {
@@ -27,6 +27,7 @@ export default function PaginaNaoCadastradas({
           carregando={carregando}
           alternarNovaAreaLinha={alternarNovaAreaLinha}
           removerLinha={removerLinha}
+          desmarcarTodas={desmarcarTodas}
           potencialTotalNovaArea={potencialTotalNovaArea}
           quantidadeSelecionada={linhasSelecionadas.length}
         />

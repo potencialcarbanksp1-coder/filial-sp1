@@ -48,6 +48,11 @@ export default function Painel() {
     naoCadastradas.recarregar()
   }
 
+  async function aoDesmarcarTodas() {
+    await naoCadastradas.desmarcarTodas()
+    recarregar() // atualiza os checkboxes "Nova Área" do Painel principal também
+  }
+
   function definirFiltroColuna(campo, valor) {
     setFiltrosColuna((atual) => ({ ...atual, [campo]: valor }))
   }
@@ -113,6 +118,7 @@ export default function Painel() {
               carregando={naoCadastradas.carregando}
               alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
               removerLinha={naoCadastradas.removerLinha}
+              desmarcarTodas={aoDesmarcarTodas}
               potencialTotalNovaArea={naoCadastradas.potencialTotalNovaArea}
               ctosMercTotalNovaArea={naoCadastradas.ctosMercTotalNovaArea}
               linhasSelecionadas={naoCadastradas.linhasSelecionadas}

@@ -743,6 +743,23 @@ table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelad
   white-space: nowrap;
 }
 
+.btn-desmarcar-todas {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #FFF;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+}
+.btn-desmarcar-todas:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 table.tabela-dados tbody tr.linha-selecionada-nova-area {
   background: #EAF3E5;
 }
