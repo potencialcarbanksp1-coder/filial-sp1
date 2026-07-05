@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import FiltroListaColuna from './FiltroListaColuna.jsx'
 
 function formatarMoeda(valor) {
   if (!valor) return <span className="num-vazio">—</span>
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
+}
+
+function formatarMoedaTexto(valor) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor || 0)
 }
 
 function formatarNumero(valor) {
@@ -47,9 +52,9 @@ const COLUNAS_FIXAS = [
   { campo: 'bairro', rotulo: 'Bairro', truncar: true, largura: 140 },
   { campo: 'cidade', rotulo: 'Cidade', truncar: true, largura: 130 },
   { campo: 'cep', rotulo: 'CEP', truncar: true, largura: 90 },
-  { campo: 'microrregiao', rotulo: 'Microrregião', truncar: true, largura: 130 },
+  { campo: 'microrregiao', rotulo: 'Microrregião', truncar: true, largura: 130, filtro: true },
   { campo: 'status_loja', rotulo: 'Status', truncar: true, largura: 130 },
-  { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140 },
+  { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140, filtro: true },
 ]
 
 const LARGURA_VOLUME_MERCADO = 130
@@ -79,11 +84,28 @@ function estiloColuna({ largura, congelada }, indiceColuna, ehCabecalho = false)
   }
 }
 
+// Extrai os valores distintos (não vazios) de uma coluna, ordenados.
+function valoresDistintos(linhas, campo, comparador) {
+  const vistos = new Set()
+  const resultado = []
+  for (const l of linhas) {
+    const v = l[campo]
+    if (v === null || v === undefined || v === '') continue
+    if (!vistos.has(v)) {
+      vistos.add(v)
+      resultado.push(v)
+    }
+  }
+  return comparador ? resultado.sort(comparador) : resultado.sort()
+}
+
 /**
  * Tabela do painel "Não Cadastradas": lojas candidatas para uma nova área.
  * CNPJ e Razão social ficam congelados ao rolar (igual ao Painel principal),
  * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, e o
  * cabeçalho dela mostra o somatório acumulado do potencial das marcadas.
+ * As colunas Potencial, Volume Mercado e Microrregião têm filtro "tipo lista"
+ * (dropdown com checkbox por valor, igual ao autofiltro do Excel).
  */
 export default function TabelaNaoCadastradas({
   linhas, carregando, alternarNovaAreaLinha, removerLinha, potencialTotalNovaArea, quantidadeSelecionada,
@@ -93,6 +115,30 @@ export default function TabelaNaoCadastradas({
   const refTabela = useRef(null)
   const sincronizando = useRef(false)
   const [larguraTabela, setLarguraTabela] = useState(0)
+
+  const [filtroPotencial, setFiltroPotencial] = useState(null) // null = todos os valores ativos
+  const [filtroVolumeMercado, setFiltroVolumeMercado] = useState(null)
+  const [filtroMicrorregiao, setFiltroMicrorregiao] = useState(null)
+
+  const valoresPotencial = useMemo(() => valoresDistintos(linhas, 'potencial_categoria'), [linhas])
+  const valoresMicrorregiao = useMemo(() => valoresDistintos(linhas, 'microrregiao'), [linhas])
+  const valoresVolumeMercado = useMemo(
+    () => valoresDistintos(linhas, 'volume_mercado', (a, b) => a - b),
+    [linhas]
+  )
+  const valoresVolumeMercadoFormatados = useMemo(
+    () => valoresVolumeMercado.map((v) => formatarMoedaTexto(v)),
+    [valoresVolumeMercado]
+  )
+
+  const linhasFiltradas = useMemo(
+    () => linhas.filter((l) =>
+      (filtroPotencial === null || filtroPotencial.has(l.potencial_categoria)) &&
+      (filtroVolumeMercado === null || filtroVolumeMercado.has(l.volume_mercado)) &&
+      (filtroMicrorregiao === null || filtroMicrorregiao.has(l.microrregiao))
+    ),
+    [linhas, filtroPotencial, filtroVolumeMercado, filtroMicrorregiao]
+  )
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
   // com a rolagem horizontal real da tabela, nos dois sentidos — mesma
@@ -173,10 +219,28 @@ export default function TabelaNaoCadastradas({
                   className={`${congelada ? 'celula-congelada' : ''} ${truncar ? 'celula-truncar' : ''}`}
                   style={estiloColuna(COLUNAS_FIXAS[indice], indice, true)}
                 >
-                  {rotulo}
+                  <div className="cabecalho-com-filtro">
+                    <span>{rotulo}</span>
+                    {campo === 'potencial_categoria' && (
+                      <FiltroListaColuna valores={valoresPotencial} selecionados={filtroPotencial} aoAlterar={setFiltroPotencial} />
+                    )}
+                    {campo === 'microrregiao' && (
+                      <FiltroListaColuna valores={valoresMicrorregiao} selecionados={filtroMicrorregiao} aoAlterar={setFiltroMicrorregiao} />
+                    )}
+                  </div>
                 </th>
               ))}
-              <th>Volume Mercado</th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Volume Mercado</span>
+                  <FiltroListaColuna
+                    valores={valoresVolumeMercado}
+                    valoresFormatados={valoresVolumeMercadoFormatados}
+                    selecionados={filtroVolumeMercado}
+                    aoAlterar={setFiltroVolumeMercado}
+                  />
+                </div>
+              </th>
               <th>Ctos Merc (usados)</th>
               <th>
                 <div className="cabecalho-nova-area">
@@ -190,7 +254,7 @@ export default function TabelaNaoCadastradas({
             </tr>
           </thead>
           <tbody>
-            {linhas.map((l) => (
+            {linhasFiltradas.map((l) => (
               <tr key={l.id} className={l.nova_area ? 'linha-selecionada-nova-area' : ''}>
                 <td className="celula-congelada celula-truncar" style={estiloColuna(COLUNAS_FIXAS[0], 0)} title={l.cnpj_loja}>
                   {l.cnpj_loja}

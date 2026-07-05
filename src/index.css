@@ -778,6 +778,171 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   color: #7A2E1E;
 }
 
+/* ---------- Mini-dashboard do painel "Não Cadastradas" ---------- */
+.dashboard-nova-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.card-nova-area {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #FFFFFF;
+  border: 1px solid var(--linha, #E2E4E8);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 170px;
+}
+
+.card-nova-area label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texto-suave, #666);
+}
+
+.card-nova-area input {
+  border: 1px solid var(--linha, #D8DADD);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+}
+
+.card-nova-area-numero {
+  align-items: flex-start;
+}
+
+.card-nova-area-rotulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texto-suave, #666);
+}
+
+.card-nova-area-valor {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--petroleo, #2B6777);
+}
+
+.btn-baixar-relatorio {
+  height: 38px;
+  align-self: flex-end;
+  white-space: nowrap;
+}
+
+/* ---------- Filtro "tipo lista" (dropdown com checkbox por valor) ---------- */
+.cabecalho-com-filtro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.filtro-lista-coluna {
+  position: relative;
+  display: inline-block;
+}
+
+.filtro-lista-botao {
+  background: transparent;
+  border: none;
+  color: var(--texto-claro, #EEE);
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0.75;
+}
+.filtro-lista-botao:hover { opacity: 1; }
+.filtro-lista-botao.filtro-lista-ativo {
+  color: var(--ambar, #E0A62B);
+  opacity: 1;
+}
+
+.filtro-lista-contador {
+  font-size: 0.6rem;
+  background: var(--ambar, #E0A62B);
+  color: #3D2E00;
+  border-radius: 8px;
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.filtro-lista-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  background: var(--branco, #fff);
+  border: 1px solid var(--linha, #D8DADD);
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  min-width: 180px;
+  max-width: 260px;
+  padding: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  text-align: left;
+  cursor: default;
+}
+
+.filtro-lista-acoes {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--linha, #E2E4E8);
+}
+.filtro-lista-acoes button {
+  background: transparent;
+  border: none;
+  color: var(--petroleo, #2B6777);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.filtro-lista-acoes button:hover { text-decoration: underline; }
+
+.filtro-lista-itens {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.filtro-lista-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--grafite, #333);
+  padding: 2px 3px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.filtro-lista-item:hover { background: var(--superficie, #F3F5F7); }
+.filtro-lista-item input { flex-shrink: 0; }
+.filtro-lista-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filtro-lista-vazio {
+  font-size: 0.7rem;
+  color: var(--texto-suave, #888);
+  padding: 4px;
+}
+
 /* ---------- Tela de login ---------- */
 .tela-login {
   min-height: 100vh;

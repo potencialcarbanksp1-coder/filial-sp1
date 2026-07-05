@@ -66,12 +66,17 @@ export function useLojasNaoCadastradas() {
     await carregar()
   }
 
-  // Soma o potencial (Volume Mercado) de todas as linhas marcadas como "Nova Área".
+  // Soma o potencial (Volume Mercado) e os Ctos Merc de todas as linhas marcadas como "Nova Área".
   const potencialTotalNovaArea = useMemo(
     () => linhas.filter((l) => l.nova_area).reduce((soma, l) => soma + (Number(l.volume_mercado) || 0), 0),
     [linhas]
   )
+  const ctosMercTotalNovaArea = useMemo(
+    () => linhas.filter((l) => l.nova_area).reduce((soma, l) => soma + (Number(l.ctos_merc) || 0), 0),
+    [linhas]
+  )
   const quantidadeSelecionada = useMemo(() => linhas.filter((l) => l.nova_area).length, [linhas])
+  const linhasSelecionadas = useMemo(() => linhas.filter((l) => l.nova_area), [linhas])
 
   return {
     linhas,
@@ -80,6 +85,8 @@ export function useLojasNaoCadastradas() {
     alternarNovaAreaLinha,
     removerLinha,
     potencialTotalNovaArea,
+    ctosMercTotalNovaArea,
     quantidadeSelecionada,
+    linhasSelecionadas,
   }
 }

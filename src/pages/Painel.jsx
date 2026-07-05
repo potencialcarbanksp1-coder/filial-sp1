@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth.jsx'
 import { useDadosPainel } from '../hooks/useDadosPainel.js'
 import { useUploads } from '../hooks/useUploads.js'
 import { useLojasNaoCadastradas } from '../hooks/useLojasNaoCadastradas.js'
+import { useConfigNovaArea } from '../hooks/useConfigNovaArea.js'
 import MenuLateral from '../components/MenuLateral.jsx'
 import PaginaPainel from './PaginaPainel.jsx'
 import PaginaDashboard from './PaginaDashboard.jsx'
@@ -13,6 +14,7 @@ export default function Painel() {
   const { perfil, ehAdmin, sair } = useAuth()
   const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, alternarLmConsig, alternarNovaArea } = useDadosPainel()
   const naoCadastradas = useLojasNaoCadastradas()
+  const configNovaArea = useConfigNovaArea()
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
   const [confirmandoNovoMes, setConfirmandoNovoMes] = useState(null) // arquivo aguardando confirmação
   const [filtrosColuna, setFiltrosColuna] = useState({}) // { nomeCampo: valorFiltro }
@@ -112,7 +114,13 @@ export default function Painel() {
               alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
               removerLinha={naoCadastradas.removerLinha}
               potencialTotalNovaArea={naoCadastradas.potencialTotalNovaArea}
-              quantidadeSelecionada={naoCadastradas.quantidadeSelecionada}
+              ctosMercTotalNovaArea={naoCadastradas.ctosMercTotalNovaArea}
+              linhasSelecionadas={naoCadastradas.linhasSelecionadas}
+              nomeGcm={configNovaArea.nomeGcm}
+              setNomeGcm={configNovaArea.setNomeGcm}
+              nomeArea={configNovaArea.nomeArea}
+              setNomeArea={configNovaArea.setNomeArea}
+              salvarConfigNovaArea={configNovaArea.salvar}
             />
           ) : (
             <PaginaPainel
