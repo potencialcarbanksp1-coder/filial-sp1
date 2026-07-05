@@ -1,0 +1,942 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Poppins:wght@400;500;600&display=swap');
+
+:root {
+  --grafite: #1C2128;
+  --grafite-2: #262C36;
+  --superficie: #F5F7FA;
+  --branco: #FFFFFF;
+  --petroleo: #2B6777;
+  --petroleo-claro: #3D8A9E;
+  --ambar: #D98E3F;
+  --salvia: #52796F;
+  --tijolo: #B0413E;
+  --linha: #E2E6EB;
+  --linha-escura: #353C48;
+  --texto-claro: #C8CDD6;
+  --texto-suave: #8A93A3;
+
+  --fonte-display: 'Space Grotesk', sans-serif;
+  --fonte-corpo: 'Poppins', sans-serif;
+  --fonte-dados: 'Poppins', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--superficie);
+  color: var(--grafite);
+  font-family: var(--fonte-corpo);
+}
+
+button {
+  font-family: var(--fonte-corpo);
+  cursor: pointer;
+}
+
+a { color: inherit; text-decoration: none; }
+
+::selection { background: var(--petroleo-claro); color: white; }
+
+:focus-visible {
+  outline: 2px solid var(--petroleo-claro);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---------- Layout geral ---------- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden; /* a página em si não rola; quem rola é a tabela internamente */
+}
+
+.topo {
+  background: var(--grafite);
+  color: var(--branco);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--linha-escura);
+  flex-shrink: 0;
+}
+
+.topo .marca {
+  font-family: var(--fonte-display);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.topo .marca .x {
+  color: var(--ambar);
+  font-weight: 500;
+}
+
+.topo .usuario {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.85rem;
+  color: var(--texto-claro);
+}
+
+.badge-papel {
+  font-family: var(--fonte-dados);
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.badge-papel.admin { background: rgba(217, 142, 63, 0.18); color: var(--ambar); }
+.badge-papel.visualizador { background: rgba(138, 147, 163, 0.18); color: var(--texto-claro); }
+
+.btn-sair {
+  background: transparent;
+  border: 1px solid var(--linha-escura);
+  color: var(--texto-claro);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: border-color 0.15s ease;
+}
+.btn-sair:hover { border-color: var(--texto-claro); }
+
+/* ---------- Layout com menu lateral ---------- */
+.corpo-com-menu {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* essencial para os filhos com overflow funcionarem dentro do flex */
+}
+
+.menu-lateral {
+  background: var(--grafite);
+  border-right: 1px solid var(--linha-escura);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 0;
+  transition: width 0.18s ease;
+  flex-shrink: 0;
+}
+
+.menu-lateral.expandido { width: 200px; }
+.menu-lateral.encolhido { width: 60px; }
+
+.menu-lateral-alternar {
+  background: transparent;
+  border: none;
+  color: var(--texto-suave);
+  font-size: 1.1rem;
+  width: 100%;
+  padding: 6px 0 16px 0;
+  display: flex;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+.menu-lateral-alternar:hover { color: var(--texto-claro); }
+
+.menu-lateral-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-lateral-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  color: var(--texto-claro);
+  padding: 11px 18px;
+  font-size: 0.85rem;
+  text-align: left;
+  border-left: 3px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.menu-lateral-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.menu-lateral-item.ativo {
+  background: rgba(217, 142, 63, 0.12);
+  border-left-color: var(--ambar);
+  color: var(--ambar);
+}
+
+.menu-lateral-icone {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.menu-lateral-rotulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* permite que os filhos com overflow funcionem corretamente dentro do flex */
+  padding: 10px 14px;
+  width: 100%;
+  overflow-y: auto; /* caso o conteúdo acima da tabela (KPIs, mensagens) não caiba, rola só essa área */
+}
+
+.titulo-pagina {
+  font-family: var(--fonte-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--grafite);
+}
+
+.subtitulo-pagina {
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+  margin: 0 0 22px 0;
+}
+
+.pagina-secao {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Página de Upload ---------- */
+.grade-upload {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.cartao-upload {
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cartao-upload h3 {
+  font-family: var(--fonte-display);
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--grafite);
+}
+
+.cartao-upload p {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+  margin: 0;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.cartao-upload-destaque {
+  border-color: var(--ambar);
+  background: rgba(217, 142, 63, 0.04);
+}
+
+.btn-baixar-modelo {
+  background: transparent;
+  border: none;
+  color: var(--petroleo);
+  font-size: 0.74rem;
+  padding: 2px 0;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.15s ease;
+}
+.btn-baixar-modelo:hover {
+  text-decoration-color: var(--petroleo);
+}
+
+/* ---------- KPIs ---------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--linha);
+  border: 1px solid var(--linha);
+  margin-bottom: 24px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.kpi {
+  background: var(--branco);
+  padding: 16px 18px;
+}
+
+.kpi .rotulo {
+  font-size: 0.72rem;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.kpi .valor {
+  font-family: var(--fonte-dados);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--grafite);
+}
+
+.kpi .valor.positivo { color: var(--salvia); }
+.kpi .valor.negativo { color: var(--tijolo); }
+
+/* ---------- Esteira de meses (assinatura visual) ---------- */
+.esteira-meses {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.esteira-meses .seta {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.pill-mes {
+  font-family: var(--fonte-dados);
+  font-size: 0.75rem;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--linha);
+  background: var(--branco);
+  color: var(--texto-suave);
+}
+
+.pill-mes.atual {
+  background: var(--grafite);
+  color: var(--branco);
+  border-color: var(--grafite);
+  font-weight: 500;
+}
+
+/* ---------- Blocos / seções ---------- */
+.bloco {
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+  margin-bottom: 24px;
+  isolation: isolate; /* cria um novo contexto de empilhamento, evitando
+                          que o cabeçalho sticky da tabela "vaze" visualmente
+                          por cima de elementos fora deste bloco */
+}
+
+/* O bloco que contém a tabela principal cresce para ocupar todo o espaço
+   vertical restante da tela, em vez de ter altura fixa em vh. */
+.bloco-tabela-principal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* essencial para o filho com overflow funcionar dentro do flex */
+  margin-bottom: 0; /* é o único bloco da página, não precisa de respiro abaixo */
+}
+
+.bloco-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--linha);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Envolve a barra de rolagem extra + a área da tabela; precisa ser flex-column
+   para que o "flex: 1" do .tabela-scroll realmente ocupe o espaço disponível. */
+.wrapper-tabela-painel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.bloco-cabecalho h2 {
+  font-family: var(--fonte-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.bloco-cabecalho .meta {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+/* ---------- Botão discreto de upload ---------- */
+.btn-upload-discreto {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px dashed var(--linha);
+  color: var(--texto-suave);
+  font-size: 0.72rem;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.btn-upload-discreto:hover {
+  border-color: var(--petroleo);
+  color: var(--petroleo);
+  border-style: solid;
+}
+
+.btn-upload-discreto:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-upload-discreto.enviando {
+  border-color: var(--ambar);
+  color: var(--ambar);
+}
+
+/* ---------- Filtro ---------- */
+.filtro-barra {
+  display: flex;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--linha);
+  flex-wrap: wrap;
+}
+
+.filtro-barra input, .filtro-barra select {
+  font-family: var(--fonte-corpo);
+  font-size: 0.85rem;
+  padding: 7px 10px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  background: var(--superficie);
+  color: var(--grafite);
+}
+
+.filtro-barra input:focus, .filtro-barra select:focus {
+  background: var(--branco);
+}
+
+/* ---------- Tabela estilo planilha ---------- */
+
+/* Barra de rolagem horizontal extra, posicionada entre o cabeçalho e a
+   primeira linha, sincronizada com a rolagem real da tabela. Facilita
+   rolar para o lado sem precisar descer até o rodapé da tabela. */
+.scroll-horizontal-extra {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 14px;
+  border-bottom: 1px solid var(--linha);
+}
+
+.scroll-horizontal-extra::-webkit-scrollbar {
+  height: 10px;
+}
+.scroll-horizontal-extra::-webkit-scrollbar-track {
+  background: #EDEFF2;
+}
+.scroll-horizontal-extra::-webkit-scrollbar-thumb {
+  background: #B8BEC8;
+  border-radius: 6px;
+}
+.scroll-horizontal-extra::-webkit-scrollbar-thumb:hover {
+  background: #9AA1AD;
+}
+
+.tabela-scroll {
+  overflow-x: auto;
+  overflow-y: scroll;
+  flex: 1;
+  min-height: 0; /* essencial dentro de flex column para o overflow funcionar */
+  position: relative;
+  scrollbar-color: #B8BEC8 #EDEFF2; /* Firefox: thumb e track em tons de cinza */
+  border-radius: 0 0 6px 6px;
+}
+
+table.tabela-dados {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--fonte-dados);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+table.tabela-layout-fixo {
+  table-layout: fixed;
+}
+
+table.tabela-dados thead th {
+  position: sticky;
+  top: 0;
+  background: var(--grafite-2);
+  color: var(--texto-claro);
+  text-align: center;
+  padding: 8px 12px;
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid var(--linha-escura);
+}
+
+.cabecalho-coluna {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.sub-rotulo-mes {
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ambar);
+}
+
+.filtro-coluna {
+  font-family: var(--fonte-corpo);
+  font-size: 0.68rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  padding: 3px 6px;
+  border: 1px solid var(--linha-escura);
+  border-radius: 3px;
+  background: var(--grafite);
+  color: var(--texto-claro);
+  width: 100%;
+  min-width: 80px;
+  max-width: 140px;
+}
+
+.filtro-coluna:focus {
+  outline: 1px solid var(--petroleo-claro);
+  background: var(--grafite-2);
+}
+
+.filtro-coluna option {
+  color: var(--grafite);
+  background: var(--branco);
+}
+
+table.tabela-dados tbody td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--linha);
+  color: var(--grafite);
+}
+
+/* Trunca o texto da célula com "..." em vez de quebrar linha ou expandir a coluna,
+   equivalente à opção "Cortar" do Google Sheets. */
+.celula-truncar {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Mantém DN e Razão social visíveis ao rolar a tabela horizontalmente,
+   equivalente a "Congelar colunas" do Google Sheets. */
+.celula-congelada {
+  position: sticky;
+  background: var(--branco);
+}
+
+thead th.celula-congelada {
+  background: var(--grafite-2);
+}
+
+/* Sombra sutil na borda direita da área congelada, para marcar visualmente
+   onde o conteúdo fixo termina e o conteúdo rolável começa. */
+tbody tr td.celula-congelada:nth-child(2),
+thead tr th.celula-congelada:nth-child(2) {
+  box-shadow: 2px 0 4px -1px rgba(0, 0, 0, 0.15);
+}
+
+table.tabela-dados tbody tr:nth-child(even) {
+  background: rgba(43, 103, 119, 0.02);
+}
+
+table.tabela-dados tbody tr:nth-child(even) td.celula-congelada {
+  background: #FAFCFC;
+}
+
+table.tabela-dados tbody tr:hover {
+  background: var(--superficie);
+}
+
+table.tabela-dados tbody tr:hover td.celula-congelada {
+  background: var(--superficie);
+}
+
+/* ---------- Alertas de produção por linha ---------- */
+/* Loja sem nenhuma produção em M1, M2 e M3 (parada há 3 meses): fundo vermelho. */
+table.tabela-dados tbody tr.linha-alerta-sem-producao {
+  background: rgba(176, 65, 62, 0.12);
+}
+table.tabela-dados tbody tr.linha-alerta-sem-producao td.celula-congelada {
+  background: #FBEAEA;
+}
+
+/* Loja que produziu em apenas 1 dos últimos 3 meses: fundo amarelo. */
+table.tabela-dados tbody tr.linha-alerta-producao-baixa {
+  background: rgba(240, 200, 30, 0.22);
+}
+table.tabela-dados tbody tr.linha-alerta-producao-baixa td.celula-congelada {
+  background: #FCF6D9;
+}
+
+/* Hover continua tendo prioridade visual sobre os alertas, para não
+   "esconder" o destaque ao passar o mouse, apenas escurece levemente. */
+table.tabela-dados tbody tr.linha-alerta-sem-producao:hover {
+  background: rgba(176, 65, 62, 0.2);
+}
+table.tabela-dados tbody tr.linha-alerta-sem-producao:hover td.celula-congelada {
+  background: #F6D7D7;
+}
+table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover {
+  background: rgba(240, 200, 30, 0.32);
+}
+table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelada {
+  background: #F9ED9F;
+}
+
+.num-positivo { color: var(--salvia); }
+.num-negativo { color: var(--tijolo); }
+.num-vazio { color: var(--texto-suave); }
+
+/* ---------- Meta CDC Prem (célula editável) ---------- */
+.btn-adicionar-meta {
+  background: transparent;
+  border: 1px dashed var(--linha);
+  color: var(--texto-suave);
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+.btn-adicionar-meta:hover {
+  border-color: var(--petroleo);
+  color: var(--petroleo);
+  border-style: solid;
+}
+
+.valor-meta-definido {
+  background: transparent;
+  border: none;
+  color: var(--grafite);
+  font-family: var(--fonte-dados);
+  font-size: 0.78rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.15s ease;
+}
+.valor-meta-definido:hover {
+  background: var(--superficie);
+  text-decoration: underline;
+}
+
+.input-meta-editavel {
+  width: 100%;
+  font-family: var(--fonte-dados);
+  font-size: 0.78rem;
+  padding: 4px 6px;
+  border: 1px solid var(--petroleo);
+  border-radius: 3px;
+  background: var(--branco);
+  color: var(--grafite);
+}
+
+/* GAP: quando a meta ainda não foi atingida (gap > 0), o valor fica em vermelho. */
+.gap-nao-atingido {
+  color: var(--tijolo) !important;
+  font-weight: 500;
+}
+
+/* ---------- Ícone LM Consig (carro clicável) ---------- */
+.icone-lm-consig {
+  background: transparent;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 7px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
+}
+.icone-lm-consig:hover {
+  background: var(--superficie);
+}
+
+.icone-lm-consig-emoji {
+  font-size: 1.35rem;
+  line-height: 1;
+  /* Inativo: emoji bem apagado e transparente, para não ser confundido
+     com o estado ativo — só uma sombra fraca do carro. */
+  filter: grayscale(1) brightness(1.4);
+  opacity: 0.28;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.icone-lm-consig.ativo .icone-lm-consig-emoji {
+  /* Ativo: cor original do emoji (carro "de verdade"), totalmente opaco,
+     sem nenhuma moldura ou fundo — só o carro colorido já indica o estado. */
+  filter: none;
+  opacity: 1;
+}
+
+/* ---------- Tabela "Não Cadastradas": cabeçalho com cor diferente do Painel principal ---------- */
+.tabela-nao-cadastradas table.tabela-dados thead th {
+  background: var(--petroleo);
+}
+.tabela-nao-cadastradas table.tabela-dados thead th.celula-congelada {
+  background: var(--petroleo);
+}
+.tabela-nao-cadastradas table.tabela-dados tbody tr:nth-child(even) td.celula-congelada {
+  background: #FAFCFC;
+}
+
+/* ---------- Coluna / painel "Nova Área" ---------- */
+.cabecalho-nova-area {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+.cabecalho-nova-area-total {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--acento, #2E75B6);
+  white-space: nowrap;
+}
+
+table.tabela-dados tbody tr.linha-selecionada-nova-area {
+  background: #EAF3E5;
+}
+
+.badge-origem {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.badge-origem-painel {
+  background: #D9EAD3;
+  color: #274E13;
+}
+.badge-origem-upload {
+  background: #D9D9D9;
+  color: #3D3D3D;
+}
+
+.btn-remover-linha {
+  background: transparent;
+  border: none;
+  color: var(--texto-suave, #888);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.btn-remover-linha:hover {
+  background: #FBE5D6;
+  color: #7A2E1E;
+}
+
+/* ---------- Tela de login ---------- */
+.tela-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--grafite);
+  padding: 20px;
+}
+
+.cartao-login {
+  background: var(--branco);
+  padding: 36px 32px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.cartao-login h1 {
+  font-family: var(--fonte-display);
+  font-size: 1.3rem;
+  margin: 0 0 4px 0;
+}
+
+.cartao-login p.subtitulo {
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  margin: 0 0 24px 0;
+}
+
+.campo {
+  margin-bottom: 14px;
+}
+
+.campo label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  margin-bottom: 5px;
+}
+
+.campo input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--linha);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.campo input:focus { border-color: var(--petroleo); }
+
+.btn-primario {
+  width: 100%;
+  background: var(--petroleo);
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 6px;
+  transition: background 0.15s ease;
+}
+
+.btn-primario:hover { background: var(--petroleo-claro); }
+.btn-primario:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.link-alternar {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+.link-alternar button {
+  background: none;
+  border: none;
+  color: var(--petroleo);
+  font-size: 0.82rem;
+  padding: 0;
+}
+
+.erro-form {
+  background: rgba(176, 65, 62, 0.08);
+  color: var(--tijolo);
+  font-size: 0.82rem;
+  padding: 9px 11px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+.aviso-sucesso {
+  background: rgba(82, 121, 111, 0.08);
+  color: var(--salvia);
+  font-size: 0.82rem;
+  padding: 9px 11px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+}
+
+/* ---------- Modal de confirmação de rotação ---------- */
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 33, 40, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.modal-caixa {
+  background: var(--branco);
+  border-radius: 8px;
+  padding: 26px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.modal-caixa h3 {
+  font-family: var(--fonte-display);
+  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+}
+
+.modal-caixa p {
+  font-size: 0.88rem;
+  color: var(--texto-suave);
+  line-height: 1.5;
+  margin: 0 0 20px 0;
+}
+
+.modal-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-secundario {
+  background: transparent;
+  border: 1px solid var(--linha);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--grafite);
+}
+
+.btn-secundario:hover { background: var(--superficie); }
+
+.status-carregando {
+  padding: 40px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+}
+
+.vazio-estado {
+  padding: 32px;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
