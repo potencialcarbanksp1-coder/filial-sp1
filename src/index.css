@@ -715,6 +715,17 @@ table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelad
   opacity: 1;
 }
 
+/* ---------- Tabela "Não Cadastradas": cabeçalho com cor diferente do Painel principal ---------- */
+.tabela-nao-cadastradas table.tabela-dados thead th {
+  background: var(--petroleo);
+}
+.tabela-nao-cadastradas table.tabela-dados thead th.celula-congelada {
+  background: var(--petroleo);
+}
+.tabela-nao-cadastradas table.tabela-dados tbody tr:nth-child(even) td.celula-congelada {
+  background: #FAFCFC;
+}
+
 /* ---------- Coluna / painel "Nova Área" ---------- */
 .cabecalho-nova-area {
   display: flex;
