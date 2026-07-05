@@ -222,6 +222,9 @@ a { color: inherit; text-decoration: none; }
 .pagina-secao {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0; /* essencial: sem isso a página cresce com o conteúdo e quem rola
+                    é a tela toda, quebrando o cabeçalho/colunas congeladas da tabela */
 }
 
 /* ---------- Página de Upload ---------- */
@@ -828,8 +831,12 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
 }
 
 .btn-baixar-relatorio {
-  height: 38px;
+  width: auto;
   align-self: flex-end;
+  height: 34px;
+  margin-top: 0;
+  padding: 0 14px;
+  font-size: 0.78rem;
   white-space: nowrap;
 }
 
