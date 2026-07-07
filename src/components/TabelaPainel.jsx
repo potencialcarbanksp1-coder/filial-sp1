@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import FiltroColuna from './FiltroColuna.jsx'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import FiltroListaColuna from './FiltroListaColuna.jsx'
 import CelulaMetaEditavel from './CelulaMetaEditavel.jsx'
 import IconeLmConsig from './IconeLmConsig.jsx'
 
@@ -8,9 +8,21 @@ function formatarMoeda(valor) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
 }
 
+function formatarMoedaTexto(valor) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor || 0)
+}
+
 function formatarNumero(valor) {
   if (!valor) return <span className="num-vazio">0</span>
   return new Intl.NumberFormat('pt-BR').format(valor)
+}
+
+function formatarNumeroTexto(valor) {
+  return new Intl.NumberFormat('pt-BR').format(valor || 0)
+}
+
+function formatarBooleanoTexto(valor) {
+  return valor ? 'Sim' : 'Não'
 }
 
 // Cores de fundo para cada faixa de potencial, parecido com a planilha original.
@@ -62,6 +74,7 @@ function CabecalhoMes({ rotuloFixo, mesReferencia }) {
 // "truncar" marca quais colunas devem cortar o texto (com "...") em vez de quebrar linha ou expandir.
 // "largura" é OBRIGATÓRIA em todas as colunas aqui porque a tabela usa table-layout: fixed
 // (necessário para o cálculo de "left" das colunas congeladas ser sempre exato).
+// Todas têm filtro "tipo lista" no cabeçalho.
 const COLUNAS_FIXAS = [
   { campo: 'codigo', rotulo: 'DN', congelada: true, truncar: true, largura: 70 },
   { campo: 'razao_social', rotulo: 'Razão social', congelada: true, truncar: true, largura: 200 },
@@ -72,6 +85,23 @@ const COLUNAS_FIXAS = [
   { campo: 'zona', rotulo: 'Zona', truncar: true, largura: 120 },
   { campo: 'gcm', rotulo: 'GCM', truncar: true, largura: 190 },
   { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140 },
+]
+
+// Demais colunas com filtro (numéricas e indicadores), fora da tabela acima
+// porque têm cabeçalhos/renderização especiais (mês, meta editável, ícones).
+const CAMPOS_EXTRAS_FILTRAVEIS = [
+  { campo: 'volume_mercado', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'ctos_merc', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+  { campo: 'producao_m3', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'qtd_m3', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+  { campo: 'producao_m2', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'qtd_m2', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+  { campo: 'producao_m1', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'qtd_m1', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+  { campo: 'meta_cdc_prem', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'gap', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'lm_consig_ativo', formatarTexto: formatarBooleanoTexto, comparador: (a, b) => (a === b ? 0 : a ? 1 : -1) },
+  { campo: 'incluido_nova_area', formatarTexto: formatarBooleanoTexto, comparador: (a, b) => (a === b ? 0 : a ? 1 : -1) },
 ]
 
 const LARGURA_VOLUME_MERCADO = 130
@@ -122,12 +152,59 @@ function calcularAlertaProducao(linha) {
   return null
 }
 
+// Extrai os valores distintos (não vazios/nulos) de uma coluna, ordenados.
+function valoresDistintos(linhas, campo, comparador) {
+  const vistos = new Set()
+  const resultado = []
+  for (const l of linhas) {
+    const v = l[campo]
+    if (v === null || v === undefined || v === '') continue
+    if (!vistos.has(v)) {
+      vistos.add(v)
+      resultado.push(v)
+    }
+  }
+  return comparador ? resultado.sort(comparador) : resultado.sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'))
+}
+
 export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig, alternarNovaArea }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
   const refTabela = useRef(null)
   const sincronizando = useRef(false)
   const [larguraTabela, setLarguraTabela] = useState(0)
+
+  const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
+  const camposExtras = CAMPOS_EXTRAS_FILTRAVEIS.map((c) => c.campo)
+
+  // Valores distintos de cada coluna filtrável, calculados a partir de TODAS
+  // as linhas (não das já filtradas), pra manter as opções do dropdown estáveis.
+  const valoresPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const campo of camposTexto) mapa[campo] = valoresDistintos(linhas, campo)
+    for (const { campo, comparador } of CAMPOS_EXTRAS_FILTRAVEIS) mapa[campo] = valoresDistintos(linhas, campo, comparador)
+    return mapa
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linhas])
+
+  const valoresFormatadosPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const { campo, formatarTexto } of CAMPOS_EXTRAS_FILTRAVEIS) {
+      mapa[campo] = valoresPorCampo[campo].map(formatarTexto)
+    }
+    return mapa
+  }, [valoresPorCampo])
+
+  function renderFiltro(campo, valoresFormatados) {
+    return (
+      <FiltroListaColuna
+        valores={valoresPorCampo[campo]}
+        valoresFormatados={valoresFormatados}
+        selecionados={filtrosColuna[campo] ?? null}
+        aoAlterar={(v) => definirFiltroColuna(campo, v)}
+      />
+    )
+  }
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
   // com a rolagem horizontal real da tabela, nos dois sentidos.
@@ -207,29 +284,84 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
                   className={`${congelada ? 'celula-congelada' : ''} ${truncar ? 'celula-truncar' : ''}`}
                   style={estiloColuna(COLUNAS_FIXAS[indice], indice, true)}
                 >
-                  <div className="cabecalho-coluna">
+                  <div className="cabecalho-com-filtro">
                     <span>{rotulo}</span>
-                    <FiltroColuna
-                      campo={campo}
-                      linhas={linhas}
-                      valorAtual={filtrosColuna[campo]}
-                      onMudar={definirFiltroColuna}
-                    />
+                    {renderFiltro(campo)}
                   </div>
                 </th>
               ))}
-              <th>Volume Mercado</th>
-              <th>Ctos Merc</th>
-              <th><CabecalhoMes rotuloFixo="M3" mesReferencia={metaMeses.M3} /></th>
-              <th>Ctos</th>
-              <th><CabecalhoMes rotuloFixo="M2" mesReferencia={metaMeses.M2} /></th>
-              <th>Ctos</th>
-              <th><CabecalhoMes rotuloFixo="M1" mesReferencia={metaMeses.M1} /></th>
-              <th>Ctos</th>
-              <th>Meta CDC Prem</th>
-              <th>GAP</th>
-              <th>LM Consig</th>
-              <th>Nova Área</th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Volume Mercado</span>
+                  {renderFiltro('volume_mercado', valoresFormatadosPorCampo.volume_mercado)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Ctos Merc</span>
+                  {renderFiltro('ctos_merc', valoresFormatadosPorCampo.ctos_merc)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <CabecalhoMes rotuloFixo="M3" mesReferencia={metaMeses.M3} />
+                  {renderFiltro('producao_m3', valoresFormatadosPorCampo.producao_m3)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Ctos</span>
+                  {renderFiltro('qtd_m3', valoresFormatadosPorCampo.qtd_m3)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <CabecalhoMes rotuloFixo="M2" mesReferencia={metaMeses.M2} />
+                  {renderFiltro('producao_m2', valoresFormatadosPorCampo.producao_m2)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Ctos</span>
+                  {renderFiltro('qtd_m2', valoresFormatadosPorCampo.qtd_m2)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <CabecalhoMes rotuloFixo="M1" mesReferencia={metaMeses.M1} />
+                  {renderFiltro('producao_m1', valoresFormatadosPorCampo.producao_m1)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Ctos</span>
+                  {renderFiltro('qtd_m1', valoresFormatadosPorCampo.qtd_m1)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Meta CDC Prem</span>
+                  {renderFiltro('meta_cdc_prem', valoresFormatadosPorCampo.meta_cdc_prem)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>GAP</span>
+                  {renderFiltro('gap', valoresFormatadosPorCampo.gap)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>LM Consig</span>
+                  {renderFiltro('lm_consig_ativo', valoresFormatadosPorCampo.lm_consig_ativo)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Nova Área</span>
+                  {renderFiltro('incluido_nova_area', valoresFormatadosPorCampo.incluido_nova_area)}
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
