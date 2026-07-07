@@ -15,6 +15,10 @@ function formatarNumero(valor) {
   return new Intl.NumberFormat('pt-BR').format(valor)
 }
 
+function formatarNumeroTexto(valor) {
+  return new Intl.NumberFormat('pt-BR').format(valor || 0)
+}
+
 const CORES_POTENCIAL = {
   'A. 1 GRAVAME': { fundo: '#FBE5D6', texto: '#7A4A1E' },
   'B. 2-5 GRAVAMES': { fundo: '#F4C56B', texto: '#5A3D00' },
@@ -44,6 +48,7 @@ function BadgePotencial({ valor }) {
 // ficam congeladas ao rolar horizontalmente, igual ao Painel principal.
 // "largura" é obrigatória aqui porque a tabela usa table-layout: fixed
 // (necessário para o cálculo de "left" das colunas congeladas ser exato).
+// Todas têm filtro "tipo lista" no cabeçalho.
 const COLUNAS_FIXAS = [
   { campo: 'cnpj_loja', rotulo: 'CNPJ', congelada: true, truncar: true, largura: 130 },
   { campo: 'razao_social', rotulo: 'Razão social', congelada: true, truncar: true, largura: 190 },
@@ -52,13 +57,17 @@ const COLUNAS_FIXAS = [
   { campo: 'bairro', rotulo: 'Bairro', truncar: true, largura: 140 },
   { campo: 'cidade', rotulo: 'Cidade', truncar: true, largura: 130 },
   { campo: 'cep', rotulo: 'CEP', truncar: true, largura: 90 },
-  { campo: 'microrregiao', rotulo: 'Microrregião', truncar: true, largura: 130, filtro: true },
+  { campo: 'microrregiao', rotulo: 'Microrregião', truncar: true, largura: 130 },
   { campo: 'status_loja', rotulo: 'Status', truncar: true, largura: 130 },
-  { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140, filtro: true },
+  { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140 },
 ]
 
-const LARGURA_VOLUME_MERCADO = 130
-const LARGURA_CTOS_MERC = 110
+// Colunas numéricas, fora do array acima (ficam depois, antes de Nova Área).
+const COLUNAS_NUMERICAS = [
+  { campo: 'volume_mercado', rotulo: 'Volume Mercado', largura: 130, formatarCelula: formatarMoeda, formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'ctos_merc', rotulo: 'Ctos Merc (usados)', largura: 110, formatarCelula: formatarNumero, formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+]
+
 const LARGURA_NOVA_AREA = 150
 const LARGURA_REMOVER = 50
 
@@ -102,13 +111,13 @@ function valoresDistintos(linhas, campo, comparador) {
 /**
  * Tabela do painel "Não Cadastradas": lojas candidatas para uma nova área.
  * CNPJ e Razão social ficam congelados ao rolar (igual ao Painel principal),
- * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, e o
- * cabeçalho dela mostra o somatório acumulado do potencial das marcadas.
- * As colunas Potencial, Volume Mercado e Microrregião têm filtro "tipo lista"
- * (dropdown com checkbox por valor, igual ao autofiltro do Excel).
+ * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, com
+ * um botão pra desmarcar todas de uma vez. TODAS as colunas de dados têm
+ * filtro "tipo lista" no cabeçalho (dropdown com checkbox por valor, igual
+ * ao autofiltro do Excel/Sheets).
  */
 export default function TabelaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas, potencialTotalNovaArea, quantidadeSelecionada,
+  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -116,28 +125,42 @@ export default function TabelaNaoCadastradas({
   const sincronizando = useRef(false)
   const [larguraTabela, setLarguraTabela] = useState(0)
 
-  const [filtroPotencial, setFiltroPotencial] = useState(null) // null = todos os valores ativos
-  const [filtroVolumeMercado, setFiltroVolumeMercado] = useState(null)
-  const [filtroMicrorregiao, setFiltroMicrorregiao] = useState(null)
+  // Um único estado guarda os filtros de TODAS as colunas: { campo: Set(valores) | undefined }.
+  // Campo ausente (ou undefined) = todos os valores ativos, sem filtro.
+  const [filtros, setFiltros] = useState({})
 
-  const valoresPotencial = useMemo(() => valoresDistintos(linhas, 'potencial_categoria'), [linhas])
-  const valoresMicrorregiao = useMemo(() => valoresDistintos(linhas, 'microrregiao'), [linhas])
-  const valoresVolumeMercado = useMemo(
-    () => valoresDistintos(linhas, 'volume_mercado', (a, b) => a - b),
-    [linhas]
-  )
-  const valoresVolumeMercadoFormatados = useMemo(
-    () => valoresVolumeMercado.map((v) => formatarMoedaTexto(v)),
-    [valoresVolumeMercado]
-  )
+  function definirFiltro(campo, valor) {
+    setFiltros((atual) => ({ ...atual, [campo]: valor }))
+  }
+
+  const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
+  const camposNumericos = COLUNAS_NUMERICAS.map((c) => c.campo)
+
+  const valoresPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const campo of camposTexto) mapa[campo] = valoresDistintos(linhas, campo)
+    for (const { campo, comparador } of COLUNAS_NUMERICAS) mapa[campo] = valoresDistintos(linhas, campo, comparador)
+    return mapa
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linhas])
+
+  const valoresFormatadosPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const { campo, formatarTexto } of COLUNAS_NUMERICAS) {
+      mapa[campo] = valoresPorCampo[campo].map(formatarTexto)
+    }
+    return mapa
+  }, [valoresPorCampo])
 
   const linhasFiltradas = useMemo(
     () => linhas.filter((l) =>
-      (filtroPotencial === null || filtroPotencial.has(l.potencial_categoria)) &&
-      (filtroVolumeMercado === null || filtroVolumeMercado.has(l.volume_mercado)) &&
-      (filtroMicrorregiao === null || filtroMicrorregiao.has(l.microrregiao))
+      [...camposTexto, ...camposNumericos].every((campo) => {
+        const selecionados = filtros[campo]
+        return !selecionados || selecionados.has(l[campo])
+      })
     ),
-    [linhas, filtroPotencial, filtroVolumeMercado, filtroMicrorregiao]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [linhas, filtros]
   )
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
@@ -206,8 +229,9 @@ export default function TabelaNaoCadastradas({
             {COLUNAS_FIXAS.map(({ campo, largura }) => (
               <col key={campo} style={{ width: largura }} />
             ))}
-            <col style={{ width: LARGURA_VOLUME_MERCADO }} />
-            <col style={{ width: LARGURA_CTOS_MERC }} />
+            {COLUNAS_NUMERICAS.map(({ campo, largura }) => (
+              <col key={campo} style={{ width: largura }} />
+            ))}
             <col style={{ width: LARGURA_NOVA_AREA }} />
             <col style={{ width: LARGURA_REMOVER }} />
           </colgroup>
@@ -221,27 +245,27 @@ export default function TabelaNaoCadastradas({
                 >
                   <div className="cabecalho-com-filtro">
                     <span>{rotulo}</span>
-                    {campo === 'potencial_categoria' && (
-                      <FiltroListaColuna valores={valoresPotencial} selecionados={filtroPotencial} aoAlterar={setFiltroPotencial} />
-                    )}
-                    {campo === 'microrregiao' && (
-                      <FiltroListaColuna valores={valoresMicrorregiao} selecionados={filtroMicrorregiao} aoAlterar={setFiltroMicrorregiao} />
-                    )}
+                    <FiltroListaColuna
+                      valores={valoresPorCampo[campo]}
+                      selecionados={filtros[campo] ?? null}
+                      aoAlterar={(v) => definirFiltro(campo, v)}
+                    />
                   </div>
                 </th>
               ))}
-              <th>
-                <div className="cabecalho-com-filtro">
-                  <span>Volume Mercado</span>
-                  <FiltroListaColuna
-                    valores={valoresVolumeMercado}
-                    valoresFormatados={valoresVolumeMercadoFormatados}
-                    selecionados={filtroVolumeMercado}
-                    aoAlterar={setFiltroVolumeMercado}
-                  />
-                </div>
-              </th>
-              <th>Ctos Merc (usados)</th>
+              {COLUNAS_NUMERICAS.map(({ campo, rotulo }) => (
+                <th key={campo}>
+                  <div className="cabecalho-com-filtro">
+                    <span>{rotulo}</span>
+                    <FiltroListaColuna
+                      valores={valoresPorCampo[campo]}
+                      valoresFormatados={valoresFormatadosPorCampo[campo]}
+                      selecionados={filtros[campo] ?? null}
+                      aoAlterar={(v) => definirFiltro(campo, v)}
+                    />
+                  </div>
+                </th>
+              ))}
               <th>
                 <div className="cabecalho-nova-area">
                   <span>Nova Área</span>
