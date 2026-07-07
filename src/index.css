@@ -857,6 +857,58 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   white-space: nowrap;
 }
 
+/* ---------- Mini-dashboard de GCM do Painel principal ---------- */
+.dashboard-gcm {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  flex-shrink: 0; /* nunca deixa esse bloco encolher, quem encolhe é a tabela abaixo */
+}
+
+.card-gcm {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #FFFFFF;
+  border: 1px solid var(--linha, #E2E4E8);
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 160px;
+}
+
+.card-gcm label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texto-suave, #666);
+}
+
+.card-gcm select {
+  border: 1px solid var(--linha, #D8DADD);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  background: #FFF;
+}
+
+.card-gcm-numero {
+  align-items: flex-start;
+}
+
+.card-gcm-rotulo {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--texto-suave, #666);
+}
+
+.card-gcm-valor {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--grafite-2, #262C36);
+  white-space: nowrap;
+}
+
 /* ---------- Filtro "tipo lista" (dropdown com checkbox por valor) ---------- */
 .cabecalho-com-filtro {
   display: flex;
