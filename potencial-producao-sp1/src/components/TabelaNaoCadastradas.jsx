@@ -1,13 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import FiltroListaColuna from './FiltroListaColuna.jsx'
 
 function formatarMoeda(valor) {
   if (!valor) return <span className="num-vazio">—</span>
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
 }
 
+function formatarMoedaTexto(valor) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor || 0)
+}
+
 function formatarNumero(valor) {
   if (!valor) return <span className="num-vazio">0</span>
   return new Intl.NumberFormat('pt-BR').format(valor)
+}
+
+function formatarNumeroTexto(valor) {
+  return new Intl.NumberFormat('pt-BR').format(valor || 0)
 }
 
 const CORES_POTENCIAL = {
@@ -39,6 +48,7 @@ function BadgePotencial({ valor }) {
 // ficam congeladas ao rolar horizontalmente, igual ao Painel principal.
 // "largura" é obrigatória aqui porque a tabela usa table-layout: fixed
 // (necessário para o cálculo de "left" das colunas congeladas ser exato).
+// Todas têm filtro "tipo lista" no cabeçalho.
 const COLUNAS_FIXAS = [
   { campo: 'cnpj_loja', rotulo: 'CNPJ', congelada: true, truncar: true, largura: 130 },
   { campo: 'razao_social', rotulo: 'Razão social', congelada: true, truncar: true, largura: 190 },
@@ -52,8 +62,12 @@ const COLUNAS_FIXAS = [
   { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140 },
 ]
 
-const LARGURA_VOLUME_MERCADO = 130
-const LARGURA_CTOS_MERC = 110
+// Colunas numéricas, fora do array acima (ficam depois, antes de Nova Área).
+const COLUNAS_NUMERICAS = [
+  { campo: 'volume_mercado', rotulo: 'Volume Mercado', largura: 130, formatarCelula: formatarMoeda, formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'ctos_merc', rotulo: 'Ctos Merc (usados)', largura: 110, formatarCelula: formatarNumero, formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+]
+
 const LARGURA_NOVA_AREA = 150
 const LARGURA_REMOVER = 50
 
@@ -79,20 +93,75 @@ function estiloColuna({ largura, congelada }, indiceColuna, ehCabecalho = false)
   }
 }
 
+// Extrai os valores distintos (não vazios) de uma coluna, ordenados.
+function valoresDistintos(linhas, campo, comparador) {
+  const vistos = new Set()
+  const resultado = []
+  for (const l of linhas) {
+    const v = l[campo]
+    if (v === null || v === undefined || v === '') continue
+    if (!vistos.has(v)) {
+      vistos.add(v)
+      resultado.push(v)
+    }
+  }
+  return comparador ? resultado.sort(comparador) : resultado.sort()
+}
+
 /**
  * Tabela do painel "Não Cadastradas": lojas candidatas para uma nova área.
  * CNPJ e Razão social ficam congelados ao rolar (igual ao Painel principal),
- * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, e o
- * cabeçalho dela mostra o somatório acumulado do potencial das marcadas.
+ * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, com
+ * um botão pra desmarcar todas de uma vez. TODAS as colunas de dados têm
+ * filtro "tipo lista" no cabeçalho (dropdown com checkbox por valor, igual
+ * ao autofiltro do Excel/Sheets).
  */
 export default function TabelaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha, potencialTotalNovaArea, quantidadeSelecionada,
+  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
   const refTabela = useRef(null)
   const sincronizando = useRef(false)
   const [larguraTabela, setLarguraTabela] = useState(0)
+
+  // Um único estado guarda os filtros de TODAS as colunas: { campo: Set(valores) | undefined }.
+  // Campo ausente (ou undefined) = todos os valores ativos, sem filtro.
+  const [filtros, setFiltros] = useState({})
+
+  function definirFiltro(campo, valor) {
+    setFiltros((atual) => ({ ...atual, [campo]: valor }))
+  }
+
+  const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
+  const camposNumericos = COLUNAS_NUMERICAS.map((c) => c.campo)
+
+  const valoresPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const campo of camposTexto) mapa[campo] = valoresDistintos(linhas, campo)
+    for (const { campo, comparador } of COLUNAS_NUMERICAS) mapa[campo] = valoresDistintos(linhas, campo, comparador)
+    return mapa
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linhas])
+
+  const valoresFormatadosPorCampo = useMemo(() => {
+    const mapa = {}
+    for (const { campo, formatarTexto } of COLUNAS_NUMERICAS) {
+      mapa[campo] = valoresPorCampo[campo].map(formatarTexto)
+    }
+    return mapa
+  }, [valoresPorCampo])
+
+  const linhasFiltradas = useMemo(
+    () => linhas.filter((l) =>
+      [...camposTexto, ...camposNumericos].every((campo) => {
+        const selecionados = filtros[campo]
+        return !selecionados || selecionados.has(l[campo])
+      })
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [linhas, filtros]
+  )
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
   // com a rolagem horizontal real da tabela, nos dois sentidos — mesma
@@ -160,8 +229,9 @@ export default function TabelaNaoCadastradas({
             {COLUNAS_FIXAS.map(({ campo, largura }) => (
               <col key={campo} style={{ width: largura }} />
             ))}
-            <col style={{ width: LARGURA_VOLUME_MERCADO }} />
-            <col style={{ width: LARGURA_CTOS_MERC }} />
+            {COLUNAS_NUMERICAS.map(({ campo, largura }) => (
+              <col key={campo} style={{ width: largura }} />
+            ))}
             <col style={{ width: LARGURA_NOVA_AREA }} />
             <col style={{ width: LARGURA_REMOVER }} />
           </colgroup>
@@ -173,24 +243,49 @@ export default function TabelaNaoCadastradas({
                   className={`${congelada ? 'celula-congelada' : ''} ${truncar ? 'celula-truncar' : ''}`}
                   style={estiloColuna(COLUNAS_FIXAS[indice], indice, true)}
                 >
-                  {rotulo}
+                  <div className="cabecalho-com-filtro">
+                    <span>{rotulo}</span>
+                    <FiltroListaColuna
+                      valores={valoresPorCampo[campo]}
+                      selecionados={filtros[campo] ?? null}
+                      aoAlterar={(v) => definirFiltro(campo, v)}
+                    />
+                  </div>
                 </th>
               ))}
-              <th>Volume Mercado</th>
-              <th>Ctos Merc (usados)</th>
+              {COLUNAS_NUMERICAS.map(({ campo, rotulo }) => (
+                <th key={campo}>
+                  <div className="cabecalho-com-filtro">
+                    <span>{rotulo}</span>
+                    <FiltroListaColuna
+                      valores={valoresPorCampo[campo]}
+                      valoresFormatados={valoresFormatadosPorCampo[campo]}
+                      selecionados={filtros[campo] ?? null}
+                      aoAlterar={(v) => definirFiltro(campo, v)}
+                    />
+                  </div>
+                </th>
+              ))}
               <th>
                 <div className="cabecalho-nova-area">
                   <span>Nova Área</span>
-                  <span className="cabecalho-nova-area-total">
-                    {quantidadeSelecionada} loja{quantidadeSelecionada === 1 ? '' : 's'} · {formatarMoeda(potencialTotalNovaArea)}
-                  </span>
+                  {quantidadeSelecionada > 0 && (
+                    <button
+                      type="button"
+                      className="btn-desmarcar-todas"
+                      onClick={desmarcarTodas}
+                      title="Desmarca a caixinha 'Nova Área' de todas as lojas de uma vez"
+                    >
+                      Desmarcar todas
+                    </button>
+                  )}
                 </div>
               </th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {linhas.map((l) => (
+            {linhasFiltradas.map((l) => (
               <tr key={l.id} className={l.nova_area ? 'linha-selecionada-nova-area' : ''}>
                 <td className="celula-congelada celula-truncar" style={estiloColuna(COLUNAS_FIXAS[0], 0)} title={l.cnpj_loja}>
                   {l.cnpj_loja}
