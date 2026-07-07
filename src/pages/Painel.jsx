@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useDadosPainel } from '../hooks/useDadosPainel.js'
 import { useUploads } from '../hooks/useUploads.js'
@@ -17,7 +17,6 @@ export default function Painel() {
   const configNovaArea = useConfigNovaArea()
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
   const [confirmandoNovoMes, setConfirmandoNovoMes] = useState(null) // arquivo aguardando confirmação
-  const [filtrosColuna, setFiltrosColuna] = useState({}) // { nomeCampo: Set(valores) | undefined (undefined = todos) }
   const [secaoAtiva, setSecaoAtiva] = useState('painel') // 'painel' | 'dashboard' | 'upload'
   const [menuExpandido, setMenuExpandido] = useState(true)
 
@@ -53,22 +52,9 @@ export default function Painel() {
     recarregar() // atualiza os checkboxes "Nova Área" do Painel principal também
   }
 
-  function definirFiltroColuna(campo, valor) {
-    setFiltrosColuna((atual) => ({ ...atual, [campo]: valor }))
-  }
-
   // Visualizadores não têm acesso à seção de Upload nem à de Não cadastradas —
   // se por algum motivo a seção ativa for uma dessas e o usuário não for admin, volta para o Painel.
   const secaoEfetiva = !ehAdmin && (secaoAtiva === 'upload' || secaoAtiva === 'nao_cadastradas') ? 'painel' : secaoAtiva
-
-  const linhasFiltradas = useMemo(() => {
-    return linhasConsolidadas.filter((linha) =>
-      Object.entries(filtrosColuna).every(([campo, selecionados]) => {
-        if (!selecionados) return true // sem filtro nesta coluna = todos os valores passam
-        return selecionados.has(linha[campo])
-      })
-    )
-  }, [linhasConsolidadas, filtrosColuna])
 
   return (
     <div className="app-shell">
@@ -129,10 +115,8 @@ export default function Painel() {
             />
           ) : (
             <PaginaPainel
-              linhas={linhasFiltradas}
+              linhas={linhasConsolidadas}
               metaMeses={metaMeses}
-              filtrosColuna={filtrosColuna}
-              definirFiltroColuna={definirFiltroColuna}
               salvarMeta={salvarMeta}
               alternarLmConsig={alternarLmConsig}
               alternarNovaArea={aoAlternarNovaArea}
