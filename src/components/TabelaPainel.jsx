@@ -167,12 +167,22 @@ function valoresDistintos(linhas, campo, comparador) {
   return comparador ? resultado.sort(comparador) : resultado.sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'))
 }
 
-export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definirFiltroColuna, salvarMeta, alternarLmConsig, alternarNovaArea }) {
+export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLmConsig, alternarNovaArea }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
   const refTabela = useRef(null)
   const sincronizando = useRef(false)
   const [larguraTabela, setLarguraTabela] = useState(0)
+
+  // O filtro fica de dentro da tabela (não do componente pai): assim, as
+  // OPÇÕES de cada dropdown sempre vêm do conjunto COMPLETO de linhas, nunca
+  // do resultado já filtrado — isso evita a "trava" de zerar um filtro e não
+  // sobrar nenhum valor pra escolher de novo.
+  const [filtros, setFiltros] = useState({}) // { campo: Set(valores) | undefined (undefined = todos) }
+
+  function definirFiltro(campo, valor) {
+    setFiltros((atual) => ({ ...atual, [campo]: valor }))
+  }
 
   const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
   const camposExtras = CAMPOS_EXTRAS_FILTRAVEIS.map((c) => c.campo)
@@ -200,11 +210,25 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
       <FiltroListaColuna
         valores={valoresPorCampo[campo]}
         valoresFormatados={valoresFormatados}
-        selecionados={filtrosColuna[campo] ?? null}
-        aoAlterar={(v) => definirFiltroColuna(campo, v)}
+        selecionados={filtros[campo] ?? null}
+        aoAlterar={(v) => definirFiltro(campo, v)}
       />
     )
   }
+
+  // Aplica os filtros sobre o conjunto completo de linhas — só pra decidir
+  // o que É EXIBIDO. As opções dos dropdowns (valoresPorCampo, acima) usam
+  // sempre "linhas" (o conjunto completo), nunca este resultado filtrado.
+  const linhasFiltradas = useMemo(() => {
+    const camposComFiltro = [...camposTexto, ...camposExtras]
+    return linhas.filter((linha) =>
+      camposComFiltro.every((campo) => {
+        const selecionados = filtros[campo]
+        return !selecionados || selecionados.has(linha[campo])
+      })
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linhas, filtros])
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
   // com a rolagem horizontal real da tabela, nos dois sentidos.
@@ -244,10 +268,14 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
     medir()
     window.addEventListener('resize', medir)
     return () => window.removeEventListener('resize', medir)
-  }, [linhas])
+  }, [linhasFiltradas])
 
+  // Só esconde a tabela inteira quando NÃO HÁ DADO NENHUM (nada foi subido ainda).
+  // Se o filtro é que zerou tudo, a tabela continua aparecendo (com cabeçalho e
+  // filtros funcionando), só a lista de linhas fica vazia — assim dá pra
+  // reabrir qualquer filtro e escolher outro valor, mesmo depois de "Limpar".
   if (linhas.length === 0) {
-    return <div className="vazio-estado">Nenhum dado encontrado. Use os botões de upload acima, ou ajuste os filtros.</div>
+    return <div className="vazio-estado">Nenhum dado encontrado. Use os botões de upload acima.</div>
   }
 
   return (
@@ -365,7 +393,14 @@ export default function TabelaPainel({ linhas, metaMeses, filtrosColuna, definir
             </tr>
           </thead>
           <tbody>
-            {linhas.map((l) => {
+            {linhasFiltradas.length === 0 && (
+              <tr>
+                <td colSpan={COLUNAS_FIXAS.length + 12} className="vazio-estado-linha">
+                  Nenhuma loja bate com os filtros atuais. Ajuste ou limpe os filtros no cabeçalho acima.
+                </td>
+              </tr>
+            )}
+            {linhasFiltradas.map((l) => {
               const alerta = calcularAlertaProducao(l)
               return (
                 <tr key={l.codigo} className={alerta ? `linha-alerta-${alerta}` : ''}>
