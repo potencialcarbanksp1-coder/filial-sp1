@@ -1129,3 +1129,11 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   color: var(--texto-suave);
   font-size: 0.85rem;
 }
+
+.vazio-estado-linha {
+  padding: 24px !important;
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+  background: var(--branco, #fff);
+}
