@@ -17,7 +17,7 @@ export default function Painel() {
   const configNovaArea = useConfigNovaArea()
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
   const [confirmandoNovoMes, setConfirmandoNovoMes] = useState(null) // arquivo aguardando confirmação
-  const [filtrosColuna, setFiltrosColuna] = useState({}) // { nomeCampo: valorFiltro }
+  const [filtrosColuna, setFiltrosColuna] = useState({}) // { nomeCampo: Set(valores) | undefined (undefined = todos) }
   const [secaoAtiva, setSecaoAtiva] = useState('painel') // 'painel' | 'dashboard' | 'upload'
   const [menuExpandido, setMenuExpandido] = useState(true)
 
@@ -63,10 +63,9 @@ export default function Painel() {
 
   const linhasFiltradas = useMemo(() => {
     return linhasConsolidadas.filter((linha) =>
-      Object.entries(filtrosColuna).every(([campo, valorFiltro]) => {
-        if (!valorFiltro) return true
-        const valorLinha = String(linha[campo] ?? '').toLowerCase()
-        return valorLinha.includes(String(valorFiltro).toLowerCase())
+      Object.entries(filtrosColuna).every(([campo, selecionados]) => {
+        if (!selecionados) return true // sem filtro nesta coluna = todos os valores passam
+        return selecionados.has(linha[campo])
       })
     )
   }, [linhasConsolidadas, filtrosColuna])
