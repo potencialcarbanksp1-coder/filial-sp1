@@ -530,7 +530,6 @@ table.tabela-dados thead th.th-grupo-producao {
 table.tabela-dados thead th.th-grupo-mpl {
   background: #5B4B8A;
   color: #FFFFFF;
-  font-style: italic;
 }
 
 .cabecalho-coluna {
@@ -545,7 +544,7 @@ table.tabela-dados thead th.th-grupo-mpl {
   font-weight: 400;
   text-transform: none;
   letter-spacing: normal;
-  color: var(--ambar);
+  color: #FFFFFF;
 }
 
 .filtro-coluna {
