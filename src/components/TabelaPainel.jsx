@@ -402,7 +402,10 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, salvarMpl,
               </th>
               <th>
                 <div className="cabecalho-com-filtro">
-                  <span>Meta CDC Prem</span>
+                  <div className="cabecalho-coluna">
+                    <span>Meta CDC</span>
+                    <span>Premiado</span>
+                  </div>
                   {renderFiltro('meta_cdc_prem', valoresFormatadosPorCampo.meta_cdc_prem)}
                 </div>
               </th>
