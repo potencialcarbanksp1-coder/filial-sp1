@@ -511,6 +511,28 @@ table.tabela-dados thead th {
   border-bottom: 1px solid var(--linha-escura);
 }
 
+/* Grupos de cor no cabeçalho do Painel principal — ajuda a identificar de
+   longe o "tipo" da coluna sem precisar ler o texto todo.
+   - Mercado (Volume Mercado / Ctos Merc): azul-petróleo, fonte normal.
+   - Produção realizada (M3/M2/M1 + Ctos de cada mês): âmbar/marrom, fonte normal.
+   - MPL (Meta Por Loja): roxo, fonte em itálico (pra diferenciar rapidinho
+     de "Meta CDC Prem", que fica ao lado e continua no estilo padrão). */
+table.tabela-dados thead th.th-grupo-mercado {
+  background: #2E5F82;
+  color: #FFFFFF;
+}
+
+table.tabela-dados thead th.th-grupo-producao {
+  background: #8A5A22;
+  color: #FFFFFF;
+}
+
+table.tabela-dados thead th.th-grupo-mpl {
+  background: #5B4B8A;
+  color: #FFFFFF;
+  font-style: italic;
+}
+
 .cabecalho-coluna {
   display: flex;
   flex-direction: column;
