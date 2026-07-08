@@ -30,7 +30,7 @@ export default function DashboardGcm({ linhas }) {
     return Array.from(vistos).sort((a, b) => a.localeCompare(b, 'pt-BR'))
   }, [linhas])
 
-  const { nomeExibido, potencialTotal, producaoAtualTotal, ctosTotal } = useMemo(() => {
+  const { nomeExibido, potencialTotal, producaoAtualTotal, ctosTotal, linhasDoEscopo } = useMemo(() => {
     const linhasDoEscopo = gcmSelecionado ? linhas.filter((l) => l.gcm === gcmSelecionado) : linhas
 
     // Produção Atual (M1): soma direta, sempre — não é afetada pela marcação "Nova Área".
@@ -55,8 +55,35 @@ export default function DashboardGcm({ linhas }) {
       potencialTotal: potencial,
       producaoAtualTotal: producao,
       ctosTotal: ctos,
+      linhasDoEscopo,
     }
   }, [linhas, gcmSelecionado])
+
+  async function baixarPlanilha() {
+    const XLSX = await import('xlsx')
+
+    const colunas = [
+      'DN', 'Razão social', 'Endereço', 'Nº', 'Bairro', 'CEP', 'Zona', 'GCM', 'Filial', 'Regional',
+      'Potencial', 'Volume Mercado', 'Ctos Merc',
+      'Produção M3', 'Ctos M3', 'Produção M2', 'Ctos M2', 'Produção M1', 'Ctos M1',
+      'MPL - Valor', 'MPL - Ctos', 'Meta CDC Prem', 'GAP', 'LM Consig',
+    ]
+    const linhasPlanilha = linhasDoEscopo.map((l) => [
+      l.codigo, l.razao_social, l.endereco, l.numero, l.bairro, l.cep, l.zona, l.gcm, l.filial, l.regional,
+      l.potencial_categoria, l.volume_mercado, l.ctos_merc,
+      l.producao_m3, l.qtd_m3, l.producao_m2, l.qtd_m2, l.producao_m1, l.qtd_m1,
+      l.mpl_valor, l.mpl_ctos, l.meta_cdc_prem, l.gap, l.lm_consig_ativo ? 'Sim' : 'Não',
+    ])
+
+    const planilha = XLSX.utils.aoa_to_sheet([colunas, ...linhasPlanilha])
+    planilha['!cols'] = colunas.map(() => ({ wch: 16 }))
+
+    const livro = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(livro, planilha, 'Painel')
+
+    const nomeArquivo = `Painel${gcmSelecionado ? '_' + gcmSelecionado.replace(/\s+/g, '_') : '_Filial'}.xlsx`
+    XLSX.writeFile(livro, nomeArquivo)
+  }
 
   return (
     <div className="dashboard-gcm">
@@ -89,6 +116,10 @@ export default function DashboardGcm({ linhas }) {
         <span className="card-gcm-rotulo">Ctos</span>
         <span className="card-gcm-valor">{formatarNumero(ctosTotal)}</span>
       </div>
+
+      <button type="button" className="btn-primario btn-baixar-relatorio" onClick={baixarPlanilha}>
+        ⬇ Relatório Excel
+      </button>
     </div>
   )
 }
