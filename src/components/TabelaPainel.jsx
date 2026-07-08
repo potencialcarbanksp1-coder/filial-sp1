@@ -330,13 +330,19 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, salvarMpl,
               ))}
               <th className="th-grupo-mercado">
                 <div className="cabecalho-com-filtro">
-                  <span>Volume Mercado</span>
+                  <div className="cabecalho-coluna">
+                    <span>Volume</span>
+                    <span>Mercado</span>
+                  </div>
                   {renderFiltro('volume_mercado', valoresFormatadosPorCampo.volume_mercado)}
                 </div>
               </th>
               <th className="th-grupo-mercado">
                 <div className="cabecalho-com-filtro">
-                  <span>Ctos Merc</span>
+                  <div className="cabecalho-coluna">
+                    <span>Ctos</span>
+                    <span>Mercado</span>
+                  </div>
                   {renderFiltro('ctos_merc', valoresFormatadosPorCampo.ctos_merc)}
                 </div>
               </th>
