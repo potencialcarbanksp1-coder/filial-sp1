@@ -378,13 +378,19 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, salvarMpl,
               </th>
               <th className="th-grupo-mpl">
                 <div className="cabecalho-com-filtro">
-                  <span>MPL - Valor</span>
+                  <div className="cabecalho-coluna">
+                    <span>Meta - Loja</span>
+                    <span className="sub-rotulo-mes">Valor</span>
+                  </div>
                   {renderFiltro('mpl_valor', valoresFormatadosPorCampo.mpl_valor)}
                 </div>
               </th>
               <th className="th-grupo-mpl">
                 <div className="cabecalho-com-filtro">
-                  <span>MPL - Ctos</span>
+                  <div className="cabecalho-coluna">
+                    <span>Meta - Loja</span>
+                    <span className="sub-rotulo-mes">Ctos</span>
+                  </div>
                   {renderFiltro('mpl_ctos', valoresFormatadosPorCampo.mpl_ctos)}
                 </div>
               </th>
