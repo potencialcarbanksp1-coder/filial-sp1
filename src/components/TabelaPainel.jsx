@@ -98,16 +98,24 @@ const CAMPOS_EXTRAS_FILTRAVEIS = [
   { campo: 'qtd_m2', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
   { campo: 'producao_m1', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
   { campo: 'qtd_m1', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
+  { campo: 'mpl_valor', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
+  { campo: 'mpl_ctos', formatarTexto: formatarNumeroTexto, comparador: (a, b) => a - b },
   { campo: 'meta_cdc_prem', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
   { campo: 'gap', formatarTexto: formatarMoedaTexto, comparador: (a, b) => a - b },
   { campo: 'lm_consig_ativo', formatarTexto: formatarBooleanoTexto, comparador: (a, b) => (a === b ? 0 : a ? 1 : -1) },
+  // "incluido_nova_area" continua existindo nos dados (ainda funciona por trás das
+  // cenas), só a coluna dela fica oculta no Painel por enquanto — ver MOSTRAR_COLUNA_NOVA_AREA.
   { campo: 'incluido_nova_area', formatarTexto: formatarBooleanoTexto, comparador: (a, b) => (a === b ? 0 : a ? 1 : -1) },
 ]
+
+// Deixe "true" pra reexibir a coluna "Nova Área" no Painel principal no futuro.
+const MOSTRAR_COLUNA_NOVA_AREA = false
 
 const LARGURA_VOLUME_MERCADO = 130
 const LARGURA_CTOS_MERC = 90
 const LARGURA_MES = 120
 const LARGURA_CTOS = 70
+const LARGURA_MPL = 120
 const LARGURA_META = 120
 const LARGURA_GAP = 120
 const LARGURA_LM_CONSIG = 90
@@ -167,7 +175,7 @@ function valoresDistintos(linhas, campo, comparador) {
   return comparador ? resultado.sort(comparador) : resultado.sort((a, b) => String(a).localeCompare(String(b), 'pt-BR'))
 }
 
-export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLmConsig, alternarNovaArea }) {
+export default function TabelaPainel({ linhas, metaMeses, salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
   const refTabela = useRef(null)
@@ -299,10 +307,12 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLm
             <col style={{ width: LARGURA_CTOS }} />
             <col style={{ width: LARGURA_MES }} />
             <col style={{ width: LARGURA_CTOS }} />
+            <col style={{ width: LARGURA_MPL }} />
+            <col style={{ width: LARGURA_MPL }} />
             <col style={{ width: LARGURA_META }} />
             <col style={{ width: LARGURA_GAP }} />
             <col style={{ width: LARGURA_LM_CONSIG }} />
-            <col style={{ width: LARGURA_NOVA_AREA }} />
+            {MOSTRAR_COLUNA_NOVA_AREA && <col style={{ width: LARGURA_NOVA_AREA }} />}
           </colgroup>
           <thead>
             <tr>
@@ -368,6 +378,18 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLm
               </th>
               <th>
                 <div className="cabecalho-com-filtro">
+                  <span>MPL - Valor</span>
+                  {renderFiltro('mpl_valor', valoresFormatadosPorCampo.mpl_valor)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>MPL - Ctos</span>
+                  {renderFiltro('mpl_ctos', valoresFormatadosPorCampo.mpl_ctos)}
+                </div>
+              </th>
+              <th>
+                <div className="cabecalho-com-filtro">
                   <span>Meta CDC Prem</span>
                   {renderFiltro('meta_cdc_prem', valoresFormatadosPorCampo.meta_cdc_prem)}
                 </div>
@@ -384,18 +406,20 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLm
                   {renderFiltro('lm_consig_ativo', valoresFormatadosPorCampo.lm_consig_ativo)}
                 </div>
               </th>
-              <th>
-                <div className="cabecalho-com-filtro">
-                  <span>Nova Área</span>
-                  {renderFiltro('incluido_nova_area', valoresFormatadosPorCampo.incluido_nova_area)}
-                </div>
-              </th>
+              {MOSTRAR_COLUNA_NOVA_AREA && (
+                <th>
+                  <div className="cabecalho-com-filtro">
+                    <span>Nova Área</span>
+                    {renderFiltro('incluido_nova_area', valoresFormatadosPorCampo.incluido_nova_area)}
+                  </div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
             {linhasFiltradas.length === 0 && (
               <tr>
-                <td colSpan={COLUNAS_FIXAS.length + 12} className="vazio-estado-linha">
+                <td colSpan={COLUNAS_FIXAS.length + 13 + (MOSTRAR_COLUNA_NOVA_AREA ? 1 : 0)} className="vazio-estado-linha">
                   Nenhuma loja bate com os filtros atuais. Ajuste ou limpe os filtros no cabeçalho acima.
                 </td>
               </tr>
@@ -422,6 +446,12 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLm
                   <td>{formatarMoeda(l.producao_m1)}</td>
                   <td>{formatarNumero(l.qtd_m1)}</td>
                   <td>
+                    <CelulaMetaEditavel dn={l.codigo} valorAtual={l.mpl_valor} aoSalvar={(dn, v) => salvarMpl(dn, 'mpl_valor', v)} />
+                  </td>
+                  <td>
+                    <CelulaMetaEditavel dn={l.codigo} valorAtual={l.mpl_ctos} aoSalvar={(dn, v) => salvarMpl(dn, 'mpl_ctos', v)} tipo="numero" />
+                  </td>
+                  <td>
                     <CelulaMetaEditavel dn={l.codigo} valorAtual={l.meta_cdc_prem} aoSalvar={salvarMeta} />
                   </td>
                   <td className={l.gap !== null && l.gap > 0 ? 'gap-nao-atingido' : ''}>
@@ -430,14 +460,16 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, alternarLm
                   <td>
                     <IconeLmConsig dn={l.codigo} ativo={l.lm_consig_ativo} aoAlternar={alternarLmConsig} />
                   </td>
-                  <td style={{ textAlign: 'center' }}>
-                    <input
-                      type="checkbox"
-                      checked={!!l.incluido_nova_area}
-                      onChange={() => alternarNovaArea(l.codigo, l)}
-                      title="Marcar esta loja para a análise de Nova Área"
-                    />
-                  </td>
+                  {MOSTRAR_COLUNA_NOVA_AREA && (
+                    <td style={{ textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={!!l.incluido_nova_area}
+                        onChange={() => alternarNovaArea(l.codigo, l)}
+                        title="Marcar esta loja para a análise de Nova Área"
+                      />
+                    </td>
+                  )}
                 </tr>
               )
             })}

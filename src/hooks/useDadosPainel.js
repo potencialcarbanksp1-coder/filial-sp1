@@ -40,7 +40,7 @@ export function useDadosPainel() {
   const [producao, setProducao] = useState([])
   const [metaMeses, setMetaMeses] = useState({ M1: null, M2: null, M3: null })
   const [carregando, setCarregando] = useState(true)
-  const { metasPorDn, salvarMeta, alternarLmConsig, alternarNovaArea } = useMetasLoja()
+  const { metasPorDn, salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea } = useMetasLoja()
 
   const carregar = useCallback(async () => {
     setCarregando(true)
@@ -74,7 +74,7 @@ export function useDadosPainel() {
   return {
     potencial, lojas, producao, metaMeses, linhasConsolidadas, carregando,
     recarregar: carregar,
-    salvarMeta, alternarLmConsig, alternarNovaArea,
+    salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea,
   }
 }
 
@@ -94,10 +94,14 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
       potencial_categoria: p.porte_loja || '',
       volume_mercado: 0,
       ctos_merc: 0,
+      filial: p.filial || '',
+      regional: p.regional || '',
     }
     atual.volume_mercado += Number(p.vol_leves_perfil_cb) || 0
     atual.ctos_merc += Number(p.qt_leves_perfil_cb) || 0
     if (!atual.potencial_categoria) atual.potencial_categoria = p.porte_loja || ''
+    if (!atual.filial) atual.filial = p.filial || ''
+    if (!atual.regional) atual.regional = p.regional || ''
     mapaPotencialPorCnpj.set(chave, atual)
   }
 
@@ -119,6 +123,8 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
       potencial_categoria: '',
       volume_mercado: 0,
       ctos_merc: 0,
+      filial: '',
+      regional: '',
     }
     const m1 = producaoPorDnEMes.get(`${dn}|M1`) || { valor: 0, quantidade: 0 }
     const m2 = producaoPorDnEMes.get(`${dn}|M2`) || { valor: 0, quantidade: 0 }
@@ -126,6 +132,8 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
 
     const metaLoja = metasPorDn?.get(dn)
     const metaCdcPrem = metaLoja?.meta_cdc_prem ?? null
+    const mplValor = metaLoja?.mpl_valor ?? null
+    const mplCtos = metaLoja?.mpl_ctos ?? null
     const lmConsigAtivo = metaLoja?.lm_consig_ativo ?? false
     const incluidoNovaArea = metaLoja?.incluido_nova_area ?? false
     // GAP = Meta - Produção do mês atual (M1). Só calculado quando há meta definida.
@@ -143,6 +151,8 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
       potencial_categoria: potencialLoja.potencial_categoria,
       volume_mercado: potencialLoja.volume_mercado,
       ctos_merc: potencialLoja.ctos_merc,
+      filial: potencialLoja.filial,
+      regional: potencialLoja.regional,
       producao_m1: m1.valor,
       qtd_m1: m1.quantidade,
       producao_m2: m2.valor,
@@ -150,6 +160,8 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
       producao_m3: m3.valor,
       qtd_m3: m3.quantidade,
       meta_cdc_prem: metaCdcPrem,
+      mpl_valor: mplValor,
+      mpl_ctos: mplCtos,
       gap,
       lm_consig_ativo: lmConsigAtivo,
       incluido_nova_area: incluidoNovaArea,

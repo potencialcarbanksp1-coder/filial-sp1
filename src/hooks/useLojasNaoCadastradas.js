@@ -66,6 +66,16 @@ export function useLojasNaoCadastradas() {
     await carregar()
   }
 
+  /** Salva (ou edita) o nome do GCM responsável pelo atendimento daquela linha. */
+  async function salvarAtendimento(id, valor) {
+    const { error } = await supabase
+      .from('lojas_nao_cadastradas')
+      .update({ atendimento: valor || null, atualizado_em: new Date().toISOString() })
+      .eq('id', id)
+    if (error) throw error
+    await carregar()
+  }
+
   /**
    * Desmarca TODAS as lojas marcadas como "Nova Área" de uma vez.
    * Para as que vieram copiadas do Painel principal (origem = 'painel'),
@@ -110,6 +120,7 @@ export function useLojasNaoCadastradas() {
     recarregar: carregar,
     alternarNovaAreaLinha,
     removerLinha,
+    salvarAtendimento,
     desmarcarTodas,
     potencialTotalNovaArea,
     ctosMercTotalNovaArea,

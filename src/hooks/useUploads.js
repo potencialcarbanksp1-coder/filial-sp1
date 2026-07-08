@@ -8,10 +8,49 @@ import {
 
 const TAMANHO_LOTE = 500 // insere em lotes para não sobrecarregar a requisição
 
+function somenteDigitos(texto) {
+  return String(texto || '').replace(/\D/g, '')
+}
+
 async function inserirEmLotes(tabela, linhas) {
   for (let i = 0; i < linhas.length; i += TAMANHO_LOTE) {
     const lote = linhas.slice(i, i + TAMANHO_LOTE)
     const { error } = await supabase.from(tabela).insert(lote)
+    if (error) throw error
+  }
+}
+
+/**
+ * Depois de subir o Potencial, copia a Filial/Regional (colunas T e S do
+ * arquivo) para dentro da própria tabela "lojas", casando pelo CNPJ.
+ * Isso é o que permite os perfis de visualização por Filial/Regional
+ * funcionarem: a política de segurança do banco confere direto em
+ * "lojas.filial"/"lojas.regional", sem precisar cruzar tabelas toda hora.
+ */
+async function sincronizarFilialRegional(linhasPotencial) {
+  const mapaPorCnpj = new Map()
+  for (const p of linhasPotencial) {
+    const chave = somenteDigitos(p.cnpj_loja)
+    if (!chave) continue
+    if (!mapaPorCnpj.has(chave) && (p.filial || p.regional)) {
+      mapaPorCnpj.set(chave, { filial: p.filial || null, regional: p.regional || null })
+    }
+  }
+  if (mapaPorCnpj.size === 0) return
+
+  const { data: lojas, error: erroLojas } = await supabase.from('lojas').select('dn, cnpj')
+  if (erroLojas) throw erroLojas
+
+  const atualizacoes = []
+  for (const loja of lojas || []) {
+    const info = mapaPorCnpj.get(somenteDigitos(loja.cnpj))
+    if (info) atualizacoes.push({ dn: loja.dn, filial: info.filial, regional: info.regional })
+  }
+  if (atualizacoes.length === 0) return
+
+  for (let i = 0; i < atualizacoes.length; i += TAMANHO_LOTE) {
+    const lote = atualizacoes.slice(i, i + TAMANHO_LOTE)
+    const { error } = await supabase.from('lojas').upsert(lote, { onConflict: 'dn' })
     if (error) throw error
   }
 }
@@ -69,6 +108,7 @@ export function useUploads({ aoConcluir }) {
       const { error: erroDelete } = await supabase.from('potencial').delete().neq('id', 0)
       if (erroDelete) throw erroDelete
       await inserirEmLotes('potencial', linhas)
+      await sincronizarFilialRegional(linhas)
 
       aoConcluir?.(`Potencial atualizado: ${linhas.length} registros carregados.`)
     } catch (e) {

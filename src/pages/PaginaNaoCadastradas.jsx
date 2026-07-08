@@ -2,13 +2,13 @@ import TabelaNaoCadastradas from '../components/TabelaNaoCadastradas.jsx'
 import DashboardNovaArea from '../components/DashboardNovaArea.jsx'
 
 export default function PaginaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas,
+  linhas, carregando, alternarNovaAreaLinha, salvarAtendimento, desmarcarTodas,
   potencialTotalNovaArea, ctosMercTotalNovaArea, linhasSelecionadas,
   nomeGcm, setNomeGcm, nomeArea, setNomeArea, salvarConfigNovaArea,
 }) {
   return (
     <div className="pagina-secao">
-      <h1 className="titulo-pagina">Não cadastradas</h1>
+      <h1 className="titulo-pagina">Mercado Potencial</h1>
 
       <DashboardNovaArea
         potencialTotal={potencialTotalNovaArea}
@@ -26,7 +26,7 @@ export default function PaginaNaoCadastradas({
           linhas={linhas}
           carregando={carregando}
           alternarNovaAreaLinha={alternarNovaAreaLinha}
-          removerLinha={removerLinha}
+          salvarAtendimento={salvarAtendimento}
           desmarcarTodas={desmarcarTodas}
           potencialTotalNovaArea={potencialTotalNovaArea}
           quantidadeSelecionada={linhasSelecionadas.length}

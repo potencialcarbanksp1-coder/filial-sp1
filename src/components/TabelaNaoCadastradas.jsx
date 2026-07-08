@@ -44,14 +44,76 @@ function BadgePotencial({ valor }) {
   )
 }
 
-// Colunas fixas (não-mês) desta tabela: as duas primeiras (CNPJ, Razão social)
-// ficam congeladas ao rolar horizontalmente, igual ao Painel principal.
+/**
+ * Célula de texto livre editável (usada na coluna "Atendimento"): clique
+ * pra editar, Enter ou clicar fora salva, Esc cancela. Fica em branco se
+ * não vier nada da planilha, e o usuário pode preencher/trocar na mão.
+ */
+function CelulaTextoEditavel({ id, valorAtual, aoSalvar }) {
+  const [editando, setEditando] = useState(false)
+  const [rascunho, setRascunho] = useState('')
+  const [salvando, setSalvando] = useState(false)
+
+  function iniciarEdicao() {
+    setRascunho(valorAtual || '')
+    setEditando(true)
+  }
+
+  async function confirmar() {
+    setSalvando(true)
+    try {
+      await aoSalvar(id, rascunho.trim())
+      setEditando(false)
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  function aoTeclar(e) {
+    if (e.key === 'Enter') confirmar()
+    if (e.key === 'Escape') setEditando(false)
+  }
+
+  if (editando) {
+    return (
+      <input
+        className="input-meta-editavel"
+        type="text"
+        autoFocus
+        value={rascunho}
+        onChange={(e) => setRascunho(e.target.value)}
+        onBlur={confirmar}
+        onKeyDown={aoTeclar}
+        placeholder="Nome do GCM"
+        disabled={salvando}
+      />
+    )
+  }
+
+  if (!valorAtual) {
+    return (
+      <button className="btn-adicionar-meta" onClick={iniciarEdicao} title="Definir atendimento (GCM)">
+        +
+      </button>
+    )
+  }
+
+  return (
+    <button className="valor-meta-definido" onClick={iniciarEdicao} title="Clique para editar o atendimento">
+      {valorAtual}
+    </button>
+  )
+}
+
+// Colunas fixas (não-numéricas) desta tabela: as duas primeiras (CNPJ, Razão
+// social) ficam congeladas ao rolar horizontalmente, igual ao Painel principal.
 // "largura" é obrigatória aqui porque a tabela usa table-layout: fixed
 // (necessário para o cálculo de "left" das colunas congeladas ser exato).
 // Todas têm filtro "tipo lista" no cabeçalho.
 const COLUNAS_FIXAS = [
   { campo: 'cnpj_loja', rotulo: 'CNPJ', congelada: true, truncar: true, largura: 130 },
   { campo: 'razao_social', rotulo: 'Razão social', congelada: true, truncar: true, largura: 190 },
+  { campo: 'atendimento', rotulo: 'Atendimento', truncar: true, largura: 150 },
   { campo: 'endereco', rotulo: 'Endereço', truncar: true, largura: 160 },
   { campo: 'numero', rotulo: 'Nº', truncar: true, largura: 60 },
   { campo: 'bairro', rotulo: 'Bairro', truncar: true, largura: 140 },
@@ -69,7 +131,6 @@ const COLUNAS_NUMERICAS = [
 ]
 
 const LARGURA_NOVA_AREA = 150
-const LARGURA_REMOVER = 50
 
 // Soma a largura de todas as colunas congeladas ANTES da coluna informada,
 // para calcular a posição "left" correta de cada uma (efeito empilhado, como no Sheets).
@@ -109,15 +170,15 @@ function valoresDistintos(linhas, campo, comparador) {
 }
 
 /**
- * Tabela do painel "Não Cadastradas": lojas candidatas para uma nova área.
+ * Tabela do painel "Mercado Potencial": lojas candidatas para uma nova área.
  * CNPJ e Razão social ficam congelados ao rolar (igual ao Painel principal),
- * assim como o cabeçalho. A coluna "Nova Área" tem checkbox por linha, com
- * um botão pra desmarcar todas de uma vez. TODAS as colunas de dados têm
- * filtro "tipo lista" no cabeçalho (dropdown com checkbox por valor, igual
- * ao autofiltro do Excel/Sheets).
+ * assim como o cabeçalho. A coluna "Atendimento" (GCM) é editável na mão.
+ * A coluna "Nova Área" tem checkbox por linha, com um botão pra desmarcar
+ * todas de uma vez. TODAS as colunas de dados têm filtro "tipo lista" no
+ * cabeçalho (dropdown com checkbox por valor, igual ao autofiltro do Excel).
  */
 export default function TabelaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, removerLinha, desmarcarTodas, quantidadeSelecionada,
+  linhas, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -233,7 +294,6 @@ export default function TabelaNaoCadastradas({
               <col key={campo} style={{ width: largura }} />
             ))}
             <col style={{ width: LARGURA_NOVA_AREA }} />
-            <col style={{ width: LARGURA_REMOVER }} />
           </colgroup>
           <thead>
             <tr>
@@ -281,7 +341,6 @@ export default function TabelaNaoCadastradas({
                   )}
                 </div>
               </th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -297,6 +356,9 @@ export default function TabelaNaoCadastradas({
                       Painel {l.dn}
                     </span>
                   )}
+                </td>
+                <td>
+                  <CelulaTextoEditavel id={l.id} valorAtual={l.atendimento} aoSalvar={salvarAtendimento} />
                 </td>
                 <td className="celula-truncar" title={l.endereco}>{l.endereco}</td>
                 <td className="celula-truncar" title={l.numero}>{l.numero}</td>
@@ -315,16 +377,6 @@ export default function TabelaNaoCadastradas({
                     onChange={() => alternarNovaAreaLinha(l.id, l.nova_area)}
                     title="Incluir esta loja no somatório da Nova Área"
                   />
-                </td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn-remover-linha"
-                    onClick={() => removerLinha(l.id)}
-                    title="Remover esta loja da lista de candidatas"
-                  >
-                    ✕
-                  </button>
                 </td>
               </tr>
             ))}

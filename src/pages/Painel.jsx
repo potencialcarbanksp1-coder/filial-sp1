@@ -12,7 +12,7 @@ import PaginaNaoCadastradas from './PaginaNaoCadastradas.jsx'
 
 export default function Painel() {
   const { perfil, ehAdmin, sair } = useAuth()
-  const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, alternarLmConsig, alternarNovaArea } = useDadosPainel()
+  const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea } = useDadosPainel()
   const naoCadastradas = useLojasNaoCadastradas()
   const configNovaArea = useConfigNovaArea()
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
@@ -102,7 +102,7 @@ export default function Painel() {
               linhas={naoCadastradas.linhas}
               carregando={naoCadastradas.carregando}
               alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
-              removerLinha={naoCadastradas.removerLinha}
+              salvarAtendimento={naoCadastradas.salvarAtendimento}
               desmarcarTodas={aoDesmarcarTodas}
               potencialTotalNovaArea={naoCadastradas.potencialTotalNovaArea}
               ctosMercTotalNovaArea={naoCadastradas.ctosMercTotalNovaArea}
@@ -118,6 +118,7 @@ export default function Painel() {
               linhas={linhasConsolidadas}
               metaMeses={metaMeses}
               salvarMeta={salvarMeta}
+              salvarMpl={salvarMpl}
               alternarLmConsig={alternarLmConsig}
               alternarNovaArea={aoAlternarNovaArea}
             />

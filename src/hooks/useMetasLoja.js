@@ -35,6 +35,24 @@ export function useMetasLoja() {
     await carregar()
   }
 
+  /** Salva (cria ou atualiza) a MPL - Valor ou a MPL - Ctos de uma loja. */
+  async function salvarMpl(dn, campo, valor) {
+    const { data: sessao } = await supabase.auth.getUser()
+    const { error } = await supabase
+      .from('metas_loja')
+      .upsert(
+        {
+          dn: String(dn),
+          [campo]: valor,
+          atualizado_em: new Date().toISOString(),
+          atualizado_por: sessao?.user?.id || null,
+        },
+        { onConflict: 'dn' }
+      )
+    if (error) throw error
+    await carregar()
+  }
+
   /** Alterna o status ativo/inativo do LM Consig de uma loja. */
   async function alternarLmConsig(dn) {
     const atual = metasPorDn.get(String(dn))
@@ -119,5 +137,5 @@ export function useMetasLoja() {
     await carregar()
   }
 
-  return { metasPorDn, carregando, salvarMeta, alternarLmConsig, alternarNovaArea }
+  return { metasPorDn, carregando, salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea }
 }

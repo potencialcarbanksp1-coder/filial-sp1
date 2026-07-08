@@ -100,6 +100,7 @@ export const MAPA_PRODUCAO = {
 export const MAPA_NAO_CADASTRADAS = {
   cnpj_loja: ['CNPJ_LOJA', 'CNPJ'],                                    // coluna B
   razao_social: ['RAZAO_LOJA', 'RAZÃO_LOJA', 'RAZAO_SOCIAL', 'RAZÃO_SOCIAL'], // coluna C
+  atendimento: ['GCM', 'ATENDIMENTO'],                                 // se não existir na planilha, fica em branco
   endereco: ['ENDERECO', 'Endereço'],                                  // coluna H
   numero: ['NUM_LOJA', 'Nº', 'N°', 'No', 'Numero'],                    // coluna I
   bairro: ['BAIRRO'],                                                  // coluna K

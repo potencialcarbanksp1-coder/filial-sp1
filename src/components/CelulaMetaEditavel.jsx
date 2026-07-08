@@ -4,12 +4,18 @@ function formatarMoeda(valor) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor)
 }
 
+function formatarNumeroInteiro(valor) {
+  return new Intl.NumberFormat('pt-BR').format(valor)
+}
+
 /**
- * Célula editável da Meta CDC Prem.
+ * Célula editável de meta (Meta CDC Prem, MPL - Valor, MPL - Ctos).
  * Sem valor definido: mostra um ícone "+" discreto.
- * Com valor definido: mostra o valor formatado como moeda; clicar nele reabre a edição.
+ * Com valor definido: mostra o valor formatado; clicar nele reabre a edição.
+ * `tipo="numero"` troca a formatação de moeda (R$) para número inteiro simples
+ * (usado em metas de quantidade de contratos, como a MPL - Ctos).
  */
-export default function CelulaMetaEditavel({ dn, valorAtual, aoSalvar }) {
+export default function CelulaMetaEditavel({ dn, valorAtual, aoSalvar, tipo = 'moeda' }) {
   const [editando, setEditando] = useState(false)
   const [rascunho, setRascunho] = useState('')
   const [salvando, setSalvando] = useState(false)
@@ -49,7 +55,7 @@ export default function CelulaMetaEditavel({ dn, valorAtual, aoSalvar }) {
         onChange={(e) => setRascunho(e.target.value)}
         onBlur={confirmar}
         onKeyDown={aoTeclar}
-        placeholder="0,00"
+        placeholder={tipo === 'numero' ? '0' : '0,00'}
         disabled={salvando}
       />
     )
@@ -65,7 +71,7 @@ export default function CelulaMetaEditavel({ dn, valorAtual, aoSalvar }) {
 
   return (
     <button className="valor-meta-definido" onClick={iniciarEdicao} title="Clique para editar a meta">
-      {formatarMoeda(valorAtual)}
+      {tipo === 'numero' ? formatarNumeroInteiro(valorAtual) : formatarMoeda(valorAtual)}
     </button>
   )
 }
