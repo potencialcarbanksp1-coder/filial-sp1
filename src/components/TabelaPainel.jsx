@@ -328,61 +328,61 @@ export default function TabelaPainel({ linhas, metaMeses, salvarMeta, salvarMpl,
                   </div>
                 </th>
               ))}
-              <th>
+              <th className="th-grupo-mercado">
                 <div className="cabecalho-com-filtro">
                   <span>Volume Mercado</span>
                   {renderFiltro('volume_mercado', valoresFormatadosPorCampo.volume_mercado)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-mercado">
                 <div className="cabecalho-com-filtro">
                   <span>Ctos Merc</span>
                   {renderFiltro('ctos_merc', valoresFormatadosPorCampo.ctos_merc)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <CabecalhoMes rotuloFixo="M3" mesReferencia={metaMeses.M3} />
                   {renderFiltro('producao_m3', valoresFormatadosPorCampo.producao_m3)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <span>Ctos</span>
                   {renderFiltro('qtd_m3', valoresFormatadosPorCampo.qtd_m3)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <CabecalhoMes rotuloFixo="M2" mesReferencia={metaMeses.M2} />
                   {renderFiltro('producao_m2', valoresFormatadosPorCampo.producao_m2)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <span>Ctos</span>
                   {renderFiltro('qtd_m2', valoresFormatadosPorCampo.qtd_m2)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <CabecalhoMes rotuloFixo="M1" mesReferencia={metaMeses.M1} />
                   {renderFiltro('producao_m1', valoresFormatadosPorCampo.producao_m1)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-producao">
                 <div className="cabecalho-com-filtro">
                   <span>Ctos</span>
                   {renderFiltro('qtd_m1', valoresFormatadosPorCampo.qtd_m1)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-mpl">
                 <div className="cabecalho-com-filtro">
                   <span>MPL - Valor</span>
                   {renderFiltro('mpl_valor', valoresFormatadosPorCampo.mpl_valor)}
                 </div>
               </th>
-              <th>
+              <th className="th-grupo-mpl">
                 <div className="cabecalho-com-filtro">
                   <span>MPL - Ctos</span>
                   {renderFiltro('mpl_ctos', valoresFormatadosPorCampo.mpl_ctos)}
