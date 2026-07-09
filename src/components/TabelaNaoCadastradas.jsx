@@ -119,7 +119,7 @@ const COLUNAS_FIXAS = [
   { campo: 'bairro', rotulo: 'Bairro', truncar: true, largura: 140 },
   { campo: 'cidade', rotulo: 'Cidade', truncar: true, largura: 130 },
   { campo: 'cep', rotulo: 'CEP', truncar: true, largura: 90 },
-  { campo: 'microrregiao', rotulo: 'Microrregião', truncar: true, largura: 130 },
+  { campo: 'zona', rotulo: 'Zona', truncar: true, largura: 130 },
   { campo: 'status_loja', rotulo: 'Status', truncar: true, largura: 130 },
   { campo: 'potencial_categoria', rotulo: 'Potencial', truncar: true, largura: 140 },
 ]
@@ -365,7 +365,7 @@ export default function TabelaNaoCadastradas({
                 <td className="celula-truncar" title={l.bairro}>{l.bairro}</td>
                 <td className="celula-truncar" title={l.cidade}>{l.cidade}</td>
                 <td className="celula-truncar" title={l.cep}>{l.cep}</td>
-                <td className="celula-truncar" title={l.microrregiao}>{l.microrregiao}</td>
+                <td className="celula-truncar" title={l.zona}>{l.zona}</td>
                 <td className="celula-truncar" title={l.status_loja}>{l.status_loja}</td>
                 <td><BadgePotencial valor={l.potencial_categoria} /></td>
                 <td>{formatarMoeda(l.volume_mercado)}</td>
