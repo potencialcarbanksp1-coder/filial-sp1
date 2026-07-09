@@ -99,7 +99,7 @@ function CelulaTextoEditavel({ id, valorAtual, aoSalvar }) {
   }
 
   return (
-    <button className="valor-meta-definido" onClick={iniciarEdicao} title="Clique para editar o atendimento">
+    <button className="valor-meta-definido" onClick={iniciarEdicao} title={`${valorAtual} (clique para editar)`}>
       {valorAtual}
     </button>
   )
@@ -357,7 +357,7 @@ export default function TabelaNaoCadastradas({
                     </span>
                   )}
                 </td>
-                <td>
+                <td className="celula-truncar">
                   <CelulaTextoEditavel id={l.id} valorAtual={l.atendimento} aoSalvar={salvarAtendimento} />
                 </td>
                 <td className="celula-truncar" title={l.endereco}>{l.endereco}</td>
