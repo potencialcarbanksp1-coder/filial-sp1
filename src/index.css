@@ -509,6 +509,9 @@ table.tabela-dados thead th {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   border-bottom: 1px solid var(--linha-escura);
+  white-space: normal; /* a tabela toda usa nowrap por padrão; sem esta linha,
+    títulos longos (ex: "Volume Mercado", "Ctos Merc (usados)") vazam por
+    cima da coluna vizinha em vez de quebrar em duas linhas */
 }
 
 /* Grupos de cor no cabeçalho do Painel principal — ajuda a identificar de
@@ -684,6 +687,12 @@ table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelad
   padding: 2px 4px;
   border-radius: 3px;
   transition: background 0.15s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
 }
 .valor-meta-definido:hover {
   background: var(--superficie);
