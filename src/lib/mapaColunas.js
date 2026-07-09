@@ -106,7 +106,7 @@ export const MAPA_NAO_CADASTRADAS = {
   bairro: ['BAIRRO'],                                                  // coluna K
   cidade: ['CIDADE'],                                                  // coluna L
   cep: ['CEP'],                                                        // coluna N
-  microrregiao: ['MICRORREGIAO', 'MICRORREGIÃO'],                      // coluna P
+  zona: ['ZONA'],                                                      // coluna BD
   status_loja: ['STATUS_LOJA'],                                        // coluna U
   potencial_categoria: ['PORTE_LOJA', 'POTENCIAL', 'POTENCIAL_CATEGORIA'], // coluna W
   volume_mercado: ['VOL_LEVES_PERFIL_CB', 'VOLUME_MERCADO'],           // coluna AJ
