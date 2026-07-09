@@ -36,11 +36,11 @@ export default function DashboardNovaArea({
 
     const colunasLojas = [
       'CNPJ', 'Razão social', 'Endereço', 'Nº', 'Bairro', 'Cidade', 'CEP',
-      'Microrregião', 'Status', 'Potencial', 'Volume Mercado', 'Ctos Merc (usados)',
+      'Zona', 'Status', 'Potencial', 'Volume Mercado', 'Ctos Merc (usados)',
     ]
     const linhasLojas = linhasSelecionadas.map((l) => [
       l.cnpj_loja, l.razao_social, l.endereco, l.numero, l.bairro, l.cidade, l.cep,
-      l.microrregiao, l.status_loja, l.potencial_categoria, l.volume_mercado, l.ctos_merc,
+      l.zona, l.status_loja, l.potencial_categoria, l.volume_mercado, l.ctos_merc,
     ])
 
     const planilha = XLSX.utils.aoa_to_sheet([...cabecalhoResumo, colunasLojas, ...linhasLojas])
