@@ -141,6 +141,7 @@ function consolidar(lojas, potencial, producao, metasPorDn) {
 
     return {
       codigo: dn,
+      cnpj: loja.cnpj || '',
       razao_social: loja.razao_social || '',
       endereco: loja.endereco || '',
       numero: loja.numero || '',
