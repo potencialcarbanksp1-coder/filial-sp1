@@ -125,7 +125,10 @@ export default function Painel() {
               producaoPorDn={producaoPorDn}
               producaoPorCnpj={producaoPorCnpj}
               carregando={naoCadastradas.carregando}
-              alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
+              alternarNovaAreaLocal={naoCadastradas.alternarNovaAreaLocal}
+              confirmarSelecao={naoCadastradas.confirmarSelecao}
+              quantidadeAlteracoesPendentes={naoCadastradas.quantidadeAlteracoesPendentes}
+              salvandoSelecao={naoCadastradas.salvandoSelecao}
               salvarAtendimento={naoCadastradas.salvarAtendimento}
               desmarcarTodas={aoDesmarcarTodas}
               potencialTotalNovaArea={naoCadastradas.potencialTotalNovaArea}
