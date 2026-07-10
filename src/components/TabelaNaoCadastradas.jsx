@@ -113,7 +113,7 @@ function CelulaTextoEditavel({ id, valorAtual, aoSalvar }) {
 const COLUNAS_FIXAS = [
   { campo: 'cnpj_loja', rotulo: 'CNPJ', congelada: true, truncar: true, largura: 130 },
   { campo: 'razao_social', rotulo: 'Razão social', congelada: true, truncar: true, largura: 190 },
-  { campo: 'atendimento', rotulo: 'Atendimento', truncar: true, largura: 150 },
+  { campo: 'atendimento', rotulo: 'Atendimento', truncar: true, largura: 150, filtroVazio: true },
   { campo: 'endereco', rotulo: 'Endereço', truncar: true, largura: 160 },
   { campo: 'numero', rotulo: 'Nº', truncar: true, largura: 60 },
   { campo: 'bairro', rotulo: 'Bairro', truncar: true, largura: 140 },
@@ -131,6 +131,7 @@ const COLUNAS_NUMERICAS = [
 ]
 
 const LARGURA_NOVA_AREA = 150
+const LARGURA_POSITIVACAO = 110
 
 // Soma a largura de todas as colunas congeladas ANTES da coluna informada,
 // para calcular a posição "left" correta de cada uma (efeito empilhado, como no Sheets).
@@ -154,19 +155,44 @@ function estiloColuna({ largura, congelada }, indiceColuna, ehCabecalho = false)
   }
 }
 
+// Marcador especial usado no filtro para representar "sem valor preenchido"
+// (ex: lojas sem Atendimento/GCM ainda definido). Um texto improvável de
+// colidir com um valor real de planilha.
+const VALOR_VAZIO = '\u0000__vazio__'
+const ROTULO_VALOR_VAZIO = '(Vazias)'
+
 // Extrai os valores distintos (não vazios) de uma coluna, ordenados.
-function valoresDistintos(linhas, campo, comparador) {
+// Se `permiteVazio` for true e existir ao menos uma linha sem valor nesse
+// campo, adiciona o marcador VALOR_VAZIO no topo da lista — assim o usuário
+// consegue filtrar especificamente pelas linhas em branco.
+function valoresDistintos(linhas, campo, comparador, permiteVazio = false) {
   const vistos = new Set()
   const resultado = []
+  let temVazio = false
   for (const l of linhas) {
     const v = l[campo]
-    if (v === null || v === undefined || v === '') continue
+    if (v === null || v === undefined || v === '') {
+      temVazio = true
+      continue
+    }
     if (!vistos.has(v)) {
       vistos.add(v)
       resultado.push(v)
     }
   }
-  return comparador ? resultado.sort(comparador) : resultado.sort()
+  const ordenado = comparador ? resultado.sort(comparador) : resultado.sort()
+  if (permiteVazio && temVazio) ordenado.unshift(VALOR_VAZIO)
+  return ordenado
+}
+
+// Confere se o valor de uma linha "bate" com os valores selecionados no
+// filtro daquela coluna — incluindo o caso especial de VALOR_VAZIO, que
+// representa qualquer célula em branco/nula.
+function valorBateFiltro(valorLinha, selecionados) {
+  if (!selecionados) return true
+  const vazio = valorLinha === null || valorLinha === undefined || valorLinha === ''
+  if (vazio) return selecionados.has(VALOR_VAZIO)
+  return selecionados.has(valorLinha)
 }
 
 /**
@@ -177,8 +203,56 @@ function valoresDistintos(linhas, campo, comparador) {
  * todas de uma vez. TODAS as colunas de dados têm filtro "tipo lista" no
  * cabeçalho (dropdown com checkbox por valor, igual ao autofiltro do Excel).
  */
+const CORES_POSITIVACAO = {
+  3: { fundo: '#000080', texto: '#FFFFFF' }, // produziu nos 3 meses (M1, M2 e M3)
+  2: { fundo: '#008000', texto: '#FFFFFF' }, // produziu em 2 dos 3 meses
+  1: { fundo: '#FF8C00', texto: '#FFFFFF' }, // produziu em apenas 1 mês
+  0: { fundo: '#FF0000', texto: '#FFFFFF' }, // zero produção nos 3 meses
+}
+
+function BadgePositivacao({ valor }) {
+  if (valor === null || valor === undefined) return null // não é loja ativa: célula fica vazia
+  const cor = CORES_POSITIVACAO[valor]
+  return (
+    <span
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        width: 26, height: 22, borderRadius: 4,
+        fontSize: '0.78rem', fontWeight: 700,
+        background: cor.fundo, color: cor.texto,
+      }}
+      title={`Produziu em ${valor} de 3 meses (M1/M2/M3)`}
+    >
+      {valor}
+    </span>
+  )
+}
+
+/**
+ * Calcula a "Positivação" de uma loja: em quantos dos últimos 3 meses (M1, M2,
+ * M3) ela teve produção — só faz sentido para lojas que JÁ SÃO CLIENTES e
+ * estão com status "ATIVO" no GCM (é o caso de uso: identificar quem tem
+ * baixa positivação para avaliar remanejamento). Para lojas com outro status
+ * (ex: "NAO CADASTRADA", ainda não é cliente), retorna null — célula fica em
+ * branco, sem badge.
+ */
+function calcularPositivacao(linha, producaoPorDn) {
+  const status = String(linha.status_loja || '').toUpperCase().trim()
+  if (status !== 'ATIVO') return null
+  if (!linha.dn) return null
+
+  const producao = producaoPorDn?.get(String(linha.dn))
+  if (!producao) return null
+
+  let contagem = 0
+  if (Number(producao.m1) > 0) contagem++
+  if (Number(producao.m2) > 0) contagem++
+  if (Number(producao.m3) > 0) contagem++
+  return contagem
+}
+
 export default function TabelaNaoCadastradas({
-  linhas, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
+  linhas, producaoPorDn, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -194,34 +268,47 @@ export default function TabelaNaoCadastradas({
     setFiltros((atual) => ({ ...atual, [campo]: valor }))
   }
 
+  // Enriquece cada linha com a Positivação já calculada (campo derivado, não
+  // vem direto do banco) — assim ela participa do filtro e da exibição do
+  // mesmo jeito que qualquer outra coluna.
+  const linhasComPositivacao = useMemo(
+    () => linhas.map((l) => ({ ...l, positivacao: calcularPositivacao(l, producaoPorDn) })),
+    [linhas, producaoPorDn]
+  )
+
   const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
-  const camposNumericos = COLUNAS_NUMERICAS.map((c) => c.campo)
+  const camposNumericos = [...COLUNAS_NUMERICAS.map((c) => c.campo), 'positivacao']
 
   const valoresPorCampo = useMemo(() => {
     const mapa = {}
-    for (const campo of camposTexto) mapa[campo] = valoresDistintos(linhas, campo)
-    for (const { campo, comparador } of COLUNAS_NUMERICAS) mapa[campo] = valoresDistintos(linhas, campo, comparador)
+    for (const { campo, filtroVazio } of COLUNAS_FIXAS) mapa[campo] = valoresDistintos(linhasComPositivacao, campo, undefined, filtroVazio)
+    for (const { campo, comparador } of COLUNAS_NUMERICAS) mapa[campo] = valoresDistintos(linhasComPositivacao, campo, comparador)
+    mapa.positivacao = valoresDistintos(linhasComPositivacao, 'positivacao', (a, b) => a - b)
     return mapa
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [linhas])
+  }, [linhasComPositivacao])
 
   const valoresFormatadosPorCampo = useMemo(() => {
     const mapa = {}
     for (const { campo, formatarTexto } of COLUNAS_NUMERICAS) {
       mapa[campo] = valoresPorCampo[campo].map(formatarTexto)
     }
+    // Colunas de texto com opção "(Vazias)" também precisam de uma lista de
+    // rótulos formatados, pra trocar o marcador interno pelo texto amigável.
+    for (const { campo, filtroVazio } of COLUNAS_FIXAS) {
+      if (!filtroVazio) continue
+      mapa[campo] = valoresPorCampo[campo].map((v) => (v === VALOR_VAZIO ? ROTULO_VALOR_VAZIO : String(v)))
+    }
+    mapa.positivacao = valoresPorCampo.positivacao.map((v) => `${v} de 3 meses`)
     return mapa
   }, [valoresPorCampo])
 
   const linhasFiltradas = useMemo(
-    () => linhas.filter((l) =>
-      [...camposTexto, ...camposNumericos].every((campo) => {
-        const selecionados = filtros[campo]
-        return !selecionados || selecionados.has(l[campo])
-      })
+    () => linhasComPositivacao.filter((l) =>
+      [...camposTexto, ...camposNumericos].every((campo) => valorBateFiltro(l[campo], filtros[campo]))
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [linhas, filtros]
+    [linhasComPositivacao, filtros]
   )
 
   // Sincroniza a barra de rolagem extra (entre cabeçalho e primeira linha)
@@ -293,6 +380,7 @@ export default function TabelaNaoCadastradas({
             {COLUNAS_NUMERICAS.map(({ campo, largura }) => (
               <col key={campo} style={{ width: largura }} />
             ))}
+            <col style={{ width: LARGURA_POSITIVACAO }} />
             <col style={{ width: LARGURA_NOVA_AREA }} />
           </colgroup>
           <thead>
@@ -307,6 +395,7 @@ export default function TabelaNaoCadastradas({
                     <span>{rotulo}</span>
                     <FiltroListaColuna
                       valores={valoresPorCampo[campo]}
+                      valoresFormatados={valoresFormatadosPorCampo[campo]}
                       selecionados={filtros[campo] ?? null}
                       aoAlterar={(v) => definirFiltro(campo, v)}
                     />
@@ -326,6 +415,17 @@ export default function TabelaNaoCadastradas({
                   </div>
                 </th>
               ))}
+              <th>
+                <div className="cabecalho-com-filtro">
+                  <span>Positivação</span>
+                  <FiltroListaColuna
+                    valores={valoresPorCampo.positivacao}
+                    valoresFormatados={valoresFormatadosPorCampo.positivacao}
+                    selecionados={filtros.positivacao ?? null}
+                    aoAlterar={(v) => definirFiltro('positivacao', v)}
+                  />
+                </div>
+              </th>
               <th>
                 <div className="cabecalho-nova-area">
                   <span>Nova Área</span>
@@ -370,6 +470,9 @@ export default function TabelaNaoCadastradas({
                 <td><BadgePotencial valor={l.potencial_categoria} /></td>
                 <td>{formatarMoeda(l.volume_mercado)}</td>
                 <td>{formatarNumero(l.ctos_merc)}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <BadgePositivacao valor={l.positivacao} />
+                </td>
                 <td style={{ textAlign: 'center' }}>
                   <input
                     type="checkbox"
