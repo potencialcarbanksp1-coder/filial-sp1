@@ -131,7 +131,7 @@ const COLUNAS_NUMERICAS = [
 ]
 
 const LARGURA_NOVA_AREA = 150
-const LARGURA_POSITIVACAO = 110
+const LARGURA_POSITIVACAO = 80
 
 // Soma a largura de todas as colunas congeladas ANTES da coluna informada,
 // para calcular a posição "left" correta de cada uma (efeito empilhado, como no Sheets).
@@ -229,19 +229,27 @@ function BadgePositivacao({ valor }) {
 }
 
 /**
- * Calcula a "Positivação" de uma loja: em quantos dos últimos 3 meses (M1, M2,
- * M3) ela teve produção — só faz sentido para lojas que JÁ SÃO CLIENTES e
- * estão com status "ATIVO" no GCM (é o caso de uso: identificar quem tem
- * baixa positivação para avaliar remanejamento). Para lojas com outro status
- * (ex: "NAO CADASTRADA", ainda não é cliente), retorna null — célula fica em
- * branco, sem badge.
+ * Calcula a Produção dos últimos 3 meses (M1, M2, M3) de uma loja: em quantos
+ * desses meses ela teve produção — só faz sentido para lojas que JÁ SÃO
+ * CLIENTES e estão com status "ATIVO" (é o caso de uso: identificar quem tem
+ * baixa produção recente para avaliar remanejamento). Para lojas com outro
+ * status (ex: "NAO CADASTRADA", ainda não é cliente), retorna null — célula
+ * fica em branco, sem badge.
+ *
+ * Cruza primeiro pelo DN (quando a linha veio de uma cópia do Painel
+ * principal, que já traz o DN) e, se não achar, cai para o CNPJ (caso de
+ * uma linha vinda de upload direto da planilha de Mercado Potencial, que
+ * não tem DN, mas pode já ser uma loja cliente reconhecível pelo CNPJ).
  */
-function calcularPositivacao(linha, producaoPorDn) {
+function calcularPositivacao(linha, producaoPorDn, producaoPorCnpj) {
   const status = String(linha.status_loja || '').toUpperCase().trim()
   if (status !== 'ATIVO') return null
-  if (!linha.dn) return null
 
-  const producao = producaoPorDn?.get(String(linha.dn))
+  let producao = linha.dn ? producaoPorDn?.get(String(linha.dn)) : null
+  if (!producao) {
+    const cnpjChave = String(linha.cnpj_loja || '').replace(/\D/g, '')
+    if (cnpjChave) producao = producaoPorCnpj?.get(cnpjChave)
+  }
   if (!producao) return null
 
   let contagem = 0
@@ -252,7 +260,7 @@ function calcularPositivacao(linha, producaoPorDn) {
 }
 
 export default function TabelaNaoCadastradas({
-  linhas, producaoPorDn, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
+  linhas, producaoPorDn, producaoPorCnpj, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -272,8 +280,8 @@ export default function TabelaNaoCadastradas({
   // vem direto do banco) — assim ela participa do filtro e da exibição do
   // mesmo jeito que qualquer outra coluna.
   const linhasComPositivacao = useMemo(
-    () => linhas.map((l) => ({ ...l, positivacao: calcularPositivacao(l, producaoPorDn) })),
-    [linhas, producaoPorDn]
+    () => linhas.map((l) => ({ ...l, positivacao: calcularPositivacao(l, producaoPorDn, producaoPorCnpj) })),
+    [linhas, producaoPorDn, producaoPorCnpj]
   )
 
   const camposTexto = COLUNAS_FIXAS.map((c) => c.campo)
@@ -417,7 +425,10 @@ export default function TabelaNaoCadastradas({
               ))}
               <th>
                 <div className="cabecalho-com-filtro">
-                  <span>Positivação</span>
+                  <div className="cabecalho-coluna">
+                    <span>Produção</span>
+                    <span className="sub-rotulo-mes">3 meses</span>
+                  </div>
                   <FiltroListaColuna
                     valores={valoresPorCampo.positivacao}
                     valoresFormatados={valoresFormatadosPorCampo.positivacao}
