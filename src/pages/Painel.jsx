@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useAuth } from '../hooks/useAuth.jsx'
 import { useDadosPainel } from '../hooks/useDadosPainel.js'
 import { useUploads } from '../hooks/useUploads.js'
@@ -15,6 +15,17 @@ export default function Painel() {
   const { linhasConsolidadas, metaMeses, carregando, recarregar, salvarMeta, salvarMpl, alternarLmConsig, alternarNovaArea } = useDadosPainel()
   const naoCadastradas = useLojasNaoCadastradas()
   const configNovaArea = useConfigNovaArea()
+
+  // Mapa DN -> produção de M1/M2/M3, usado pela coluna "Positivação" do
+  // Mercado Potencial (só faz sentido para lojas que já são clientes, ou
+  // seja, que têm um DN vindo do Painel principal).
+  const producaoPorDn = useMemo(() => {
+    const mapa = new Map()
+    for (const l of linhasConsolidadas) {
+      mapa.set(String(l.codigo), { m1: l.producao_m1, m2: l.producao_m2, m3: l.producao_m3 })
+    }
+    return mapa
+  }, [linhasConsolidadas])
   const [mensagem, setMensagem] = useState(null) // { texto, ehErro }
   const [confirmandoNovoMes, setConfirmandoNovoMes] = useState(null) // arquivo aguardando confirmação
   const [secaoAtiva, setSecaoAtiva] = useState('painel') // 'painel' | 'dashboard' | 'upload'
@@ -100,6 +111,7 @@ export default function Painel() {
           ) : secaoEfetiva === 'nao_cadastradas' ? (
             <PaginaNaoCadastradas
               linhas={naoCadastradas.linhas}
+              producaoPorDn={producaoPorDn}
               carregando={naoCadastradas.carregando}
               alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
               salvarAtendimento={naoCadastradas.salvarAtendimento}
