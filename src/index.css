@@ -790,6 +790,32 @@ table.tabela-dados tbody tr.linha-alerta-producao-baixa:hover td.celula-congelad
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* ---------- Barra de "seleção pendente" (Nova Área no Mercado Potencial) ---------- */
+.barra-selecao-pendente {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #FFF7E0;
+  border: 1px solid #F0D98C;
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: #6B5300;
+  font-weight: 600;
+}
+
+.btn-primario.btn-confirmar-selecao {
+  width: auto;
+  margin-top: 0;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 table.tabela-dados tbody tr.linha-selecionada-nova-area {
   background: #EAF3E5;
 }
