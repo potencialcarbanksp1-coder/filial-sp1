@@ -188,6 +188,12 @@ export function useUploads({ aoConcluir }) {
           }
           mapeada.origem = 'upload'
           mapeada.nova_area = false
+          // Sem GCM informado na planilha: preenche com um nome provisório
+          // editável, em vez de deixar em branco — facilita achar e distribuir
+          // essas lojas depois (ainda dá pra clicar e trocar o nome a qualquer hora).
+          if (!mapeada.atendimento || !String(mapeada.atendimento).trim()) {
+            mapeada.atendimento = 'Novo GCM'
+          }
           return mapeada
         })
         .filter(Boolean)

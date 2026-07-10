@@ -111,6 +111,7 @@ export function useMetasLoja() {
             origem: 'painel',
             dn: String(dn),
             razao_social: dadosLinha.razao_social || '',
+            atendimento: dadosLinha.gcm || 'Novo GCM',
             endereco: dadosLinha.endereco || '',
             numero: dadosLinha.numero || '',
             bairro: dadosLinha.bairro || '',
