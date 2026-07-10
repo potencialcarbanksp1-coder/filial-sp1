@@ -16,13 +16,24 @@ export default function Painel() {
   const naoCadastradas = useLojasNaoCadastradas()
   const configNovaArea = useConfigNovaArea()
 
-  // Mapa DN -> produção de M1/M2/M3, usado pela coluna "Positivação" do
-  // Mercado Potencial (só faz sentido para lojas que já são clientes, ou
-  // seja, que têm um DN vindo do Painel principal).
+  // Mapa DN -> produção de M1/M2/M3, e também CNPJ -> produção, usados pela
+  // coluna "Produção 3 meses" do Mercado Potencial. O cruzamento por CNPJ é o
+  // que importa: a planilha de Mercado Potencial não traz o DN, então é pelo
+  // CNPJ que conseguimos identificar se aquela loja já é cliente e achar a
+  // produção dela no Painel principal.
   const producaoPorDn = useMemo(() => {
     const mapa = new Map()
     for (const l of linhasConsolidadas) {
       mapa.set(String(l.codigo), { m1: l.producao_m1, m2: l.producao_m2, m3: l.producao_m3 })
+    }
+    return mapa
+  }, [linhasConsolidadas])
+
+  const producaoPorCnpj = useMemo(() => {
+    const mapa = new Map()
+    for (const l of linhasConsolidadas) {
+      const chave = String(l.cnpj || '').replace(/\D/g, '')
+      if (chave) mapa.set(chave, { m1: l.producao_m1, m2: l.producao_m2, m3: l.producao_m3 })
     }
     return mapa
   }, [linhasConsolidadas])
@@ -112,6 +123,7 @@ export default function Painel() {
             <PaginaNaoCadastradas
               linhas={naoCadastradas.linhas}
               producaoPorDn={producaoPorDn}
+              producaoPorCnpj={producaoPorCnpj}
               carregando={naoCadastradas.carregando}
               alternarNovaAreaLinha={naoCadastradas.alternarNovaAreaLinha}
               salvarAtendimento={naoCadastradas.salvarAtendimento}
