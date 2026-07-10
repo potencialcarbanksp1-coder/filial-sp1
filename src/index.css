@@ -998,6 +998,23 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   cursor: default;
 }
 
+.filtro-lista-busca {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--linha, #D8DADD);
+  border-radius: 4px;
+  padding: 5px 7px;
+  font-size: 0.72rem;
+  margin-bottom: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+}
+.filtro-lista-busca:focus {
+  outline: none;
+  border-color: var(--petroleo, #2B6777);
+}
+
 .filtro-lista-acoes {
   display: flex;
   justify-content: space-between;
