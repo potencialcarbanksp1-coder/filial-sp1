@@ -260,7 +260,9 @@ function calcularPositivacao(linha, producaoPorDn, producaoPorCnpj) {
 }
 
 export default function TabelaNaoCadastradas({
-  linhas, producaoPorDn, producaoPorCnpj, carregando, alternarNovaAreaLinha, desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
+  linhas, producaoPorDn, producaoPorCnpj, carregando,
+  alternarNovaAreaLocal, confirmarSelecao, quantidadeAlteracoesPendentes, salvandoSelecao,
+  desmarcarTodas, salvarAtendimento, quantidadeSelecionada,
 }) {
   const refScrollSuperior = useRef(null)
   const refScrollTabela = useRef(null)
@@ -374,6 +376,23 @@ export default function TabelaNaoCadastradas({
 
   return (
     <div className="wrapper-tabela-painel tabela-nao-cadastradas">
+      {quantidadeAlteracoesPendentes > 0 && (
+        <div className="barra-selecao-pendente">
+          <span>
+            {quantidadeAlteracoesPendentes} loja{quantidadeAlteracoesPendentes === 1 ? '' : 's'} com marcação de
+            "Nova Área" ainda não salva{quantidadeAlteracoesPendentes === 1 ? '' : 's'}
+          </span>
+          <button
+            type="button"
+            className="btn-primario btn-confirmar-selecao"
+            onClick={confirmarSelecao}
+            disabled={salvandoSelecao}
+          >
+            {salvandoSelecao ? 'Salvando…' : 'Confirmar seleção'}
+          </button>
+        </div>
+      )}
+
       {/* Barra de rolagem horizontal extra, logo abaixo do cabeçalho — igual ao Painel principal */}
       <div className="scroll-horizontal-extra" ref={refScrollSuperior}>
         <div style={{ width: larguraTabela || '100%', height: 1 }} />
@@ -488,7 +507,7 @@ export default function TabelaNaoCadastradas({
                   <input
                     type="checkbox"
                     checked={!!l.nova_area}
-                    onChange={() => alternarNovaAreaLinha(l.id, l.nova_area)}
+                    onChange={() => alternarNovaAreaLocal(l.id, l.nova_area)}
                     title="Incluir esta loja no somatório da Nova Área"
                   />
                 </td>
