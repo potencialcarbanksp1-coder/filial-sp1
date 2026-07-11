@@ -1262,3 +1262,185 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   font-size: 0.85rem;
   background: var(--branco, #fff);
 }
+
+/* ---------- Análise Regional ---------- */
+.controles-analise-regional {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.controles-analise-regional .card-gcm input {
+  width: 140px;
+}
+
+.checkbox-analise-regional {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--texto-suave, #666);
+  padding-bottom: 8px;
+  white-space: nowrap;
+}
+
+.btn-primario.btn-puxar-zeradas {
+  width: auto;
+  margin-top: 0;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  background: var(--petroleo, #2B6777);
+}
+
+.btn-primario.btn-puxar-zeradas.btn-puxar-zeradas-ativo {
+  background: #8A5A22;
+}
+
+.resumo-analise-regional {
+  font-size: 0.8rem;
+  color: var(--texto-suave, #666);
+  margin: 0 0 14px;
+}
+
+.grade-regioes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.card-regiao {
+  background: #FFFFFF;
+  border: 1px solid var(--linha, #E2E4E8);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-regiao-atinge-meta {
+  border: 2px solid #008000;
+}
+
+.card-regiao-cabecalho {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--grafite-2, #262C36);
+  color: #FFF;
+  border: none;
+  padding: 10px 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.card-regiao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-regiao-cep {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.badge-atinge-meta {
+  background: #008000;
+  color: #FFF;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.card-regiao-seta {
+  font-size: 0.8rem;
+}
+
+.card-regiao-metricas {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 14px;
+  gap: 8px;
+}
+
+.card-regiao-metricas > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.card-regiao-metrica-rotulo {
+  font-size: 0.68rem;
+  color: var(--texto-suave, #666);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.card-regiao-metrica-valor {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--grafite-2, #262C36);
+}
+
+.card-regiao-metrica-destaque {
+  color: #008000;
+}
+
+.card-regiao-lista {
+  border-top: 1px solid var(--linha, #E2E4E8);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.card-regiao-loja {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--superficie, #F3F5F7);
+  font-size: 0.75rem;
+}
+
+.card-regiao-loja:last-child { border-bottom: none; }
+
+.card-regiao-loja-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-regiao-loja-nome {
+  font-weight: 600;
+  color: var(--grafite, #333);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-regiao-loja-endereco {
+  font-size: 0.68rem;
+  color: var(--texto-suave, #888);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-regiao-loja-status {
+  font-size: 0.68rem;
+  color: var(--texto-suave, #888);
+  white-space: nowrap;
+}
+
+.card-regiao-loja-valor {
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--grafite, #333);
+}
