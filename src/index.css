@@ -1357,6 +1357,48 @@ table.tabela-dados tbody tr.linha-selecionada-nova-area {
   white-space: nowrap;
 }
 
+.card-regiao-composta {
+  box-shadow: 0 0 0 3px rgba(43, 103, 119, 0.3);
+}
+
+.card-regiao-compor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--petroleo, #2B6777);
+  border-bottom: 1px solid var(--linha, #E2E4E8);
+  cursor: pointer;
+}
+
+.resumo-composicao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: #EAF1F3;
+  border: 1px solid #BFD6DC;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.resumo-composicao-metricas {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--grafite-2, #262C36);
+}
+
+.resumo-composicao-metricas strong {
+  color: var(--petroleo, #2B6777);
+}
+
 .card-regiao-seta {
   font-size: 0.8rem;
 }
