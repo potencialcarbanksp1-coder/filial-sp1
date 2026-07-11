@@ -9,6 +9,7 @@ import PaginaPainel from './PaginaPainel.jsx'
 import PaginaDashboard from './PaginaDashboard.jsx'
 import PaginaUpload from './PaginaUpload.jsx'
 import PaginaNaoCadastradas from './PaginaNaoCadastradas.jsx'
+import PaginaAnaliseRegional from './PaginaAnaliseRegional.jsx'
 
 export default function Painel() {
   const { perfil, ehAdmin, sair } = useAuth()
@@ -74,9 +75,11 @@ export default function Painel() {
     recarregar() // atualiza os checkboxes "Nova Área" do Painel principal também
   }
 
-  // Visualizadores não têm acesso à seção de Upload nem à de Não cadastradas —
-  // se por algum motivo a seção ativa for uma dessas e o usuário não for admin, volta para o Painel.
-  const secaoEfetiva = !ehAdmin && (secaoAtiva === 'upload' || secaoAtiva === 'nao_cadastradas') ? 'painel' : secaoAtiva
+  // Visualizadores não têm acesso à seção de Upload, Não cadastradas nem
+  // Análise Regional — se por algum motivo a seção ativa for uma dessas e o
+  // usuário não for admin, volta para o Painel.
+  const secoesAdminOnly = ['upload', 'nao_cadastradas', 'analise_regional']
+  const secaoEfetiva = !ehAdmin && secoesAdminOnly.includes(secaoAtiva) ? 'painel' : secaoAtiva
 
   return (
     <div className="app-shell">
@@ -139,6 +142,12 @@ export default function Painel() {
               nomeArea={configNovaArea.nomeArea}
               setNomeArea={configNovaArea.setNomeArea}
               salvarConfigNovaArea={configNovaArea.salvar}
+            />
+          ) : secaoEfetiva === 'analise_regional' ? (
+            <PaginaAnaliseRegional
+              linhas={naoCadastradas.linhas}
+              producaoPorDn={producaoPorDn}
+              producaoPorCnpj={producaoPorCnpj}
             />
           ) : (
             <PaginaPainel
