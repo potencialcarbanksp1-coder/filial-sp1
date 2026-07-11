@@ -24,11 +24,13 @@ function somenteDigitos(texto) {
  * suficiente (por padrão, a partir de R$ 20 milhões) para justificar a
  * criação de uma nova área/contratação de um novo GCM.
  */
-export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj) {
+export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj, definirNovaAreaEmLote) {
   const [incluirZeradas, setIncluirZeradas] = useState(false)
   const [digitosCep, setDigitosCep] = useState(DIGITOS_CEP_PADRAO)
   const [limiarPotencial, setLimiarPotencial] = useState(LIMIAR_PADRAO)
   const [apenasAcimaDoLimiar, setApenasAcimaDoLimiar] = useState(true)
+  // Chaves (prefixo de CEP) dos cards marcados com "Compor Área".
+  const [gruposCompostos, setGruposCompostos] = useState(new Set())
 
   // Enriquece cada linha com a Positivação (só relevante para decidir quem
   // entra no pool quando "Puxar lojas zeradas" estiver ativado).
@@ -67,6 +69,45 @@ export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj) {
     [grupos, apenasAcimaDoLimiar, limiarPotencial]
   )
 
+  /**
+   * Marca/desmarca um card (região) para "Compor Área": além de acumular no
+   * resumo desta página, já marca (ou desmarca) todas as lojas daquele grupo
+   * como "Nova Área" no Mercado Potencial — usando a mesma pendência local
+   * de lá, então o usuário confirma tudo de uma vez com "Confirmar seleção".
+   */
+  function alternarComposicao(chave) {
+    setGruposCompostos((atual) => {
+      const novo = new Set(atual)
+      const grupo = grupos.find((g) => g.chave === chave)
+      const vaiComporAgora = !novo.has(chave)
+
+      if (vaiComporAgora) novo.add(chave)
+      else novo.delete(chave)
+
+      if (grupo && definirNovaAreaEmLote) {
+        definirNovaAreaEmLote(grupo.lojas.map((l) => l.id), vaiComporAgora)
+      }
+
+      return novo
+    })
+  }
+
+  const gruposComPostosSelecionados = useMemo(
+    () => grupos.filter((g) => gruposCompostos.has(g.chave)),
+    [grupos, gruposCompostos]
+  )
+
+  const composicao = useMemo(() => {
+    const lojas = gruposComPostosSelecionados.flatMap((g) => g.lojas)
+    return {
+      quantidadeRegioes: gruposComPostosSelecionados.length,
+      quantidadeLojas: lojas.length,
+      totalVolume: gruposComPostosSelecionados.reduce((soma, g) => soma + g.totalVolume, 0),
+      totalCtos: gruposComPostosSelecionados.reduce((soma, g) => soma + g.totalCtos, 0),
+      lojas,
+    }
+  }, [gruposComPostosSelecionados])
+
   return {
     candidatas,
     grupos,
@@ -79,5 +120,8 @@ export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj) {
     setLimiarPotencial,
     apenasAcimaDoLimiar,
     setApenasAcimaDoLimiar,
+    gruposCompostos,
+    alternarComposicao,
+    composicao,
   }
 }
