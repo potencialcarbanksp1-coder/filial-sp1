@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function formatarMoeda(valor) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(valor || 0)
@@ -6,6 +6,42 @@ function formatarMoeda(valor) {
 
 function formatarNumero(valor) {
   return new Intl.NumberFormat('pt-BR').format(valor || 0)
+}
+
+/**
+ * Campo numérico que só confirma o valor ao sair do campo (ou apertar Enter),
+ * em vez de recalcular a cada tecla. Evita o bug de campos controlados que
+ * "travam" em 0 quando o usuário apaga tudo para digitar um número novo.
+ */
+function InputNumeroLivre({ id, valor, aoConfirmar, min, max }) {
+  const [texto, setTexto] = useState(String(valor))
+
+  useEffect(() => {
+    setTexto(String(valor))
+  }, [valor])
+
+  function confirmar() {
+    let numero = parseInt(texto.replace(/\D/g, ''), 10)
+    if (isNaN(numero)) numero = valor
+    if (min !== undefined) numero = Math.max(min, numero)
+    if (max !== undefined) numero = Math.min(max, numero)
+    aoConfirmar(numero)
+    setTexto(String(numero))
+  }
+
+  return (
+    <input
+      id={id}
+      type="text"
+      inputMode="numeric"
+      value={texto}
+      onChange={(e) => setTexto(e.target.value)}
+      onBlur={confirmar}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur()
+      }}
+    />
+  )
 }
 
 const CORES_POSITIVACAO = { 3: '#000080', 2: '#008000', 1: '#FF8C00', 0: '#FF0000' }
@@ -93,25 +129,12 @@ export default function DashboardAnaliseRegional({
       <div className="controles-analise-regional">
         <div className="card-gcm">
           <label htmlFor="input-limiar">Meta de Ctos (contratos)</label>
-          <input
-            id="input-limiar"
-            type="number"
-            step="10"
-            value={limiarPotencial}
-            onChange={(e) => setLimiarPotencial(Number(e.target.value) || 0)}
-          />
+          <InputNumeroLivre id="input-limiar" valor={limiarPotencial} aoConfirmar={setLimiarPotencial} min={0} />
         </div>
 
         <div className="card-gcm">
           <label htmlFor="input-digitos-cep">Agrupar por dígitos do CEP</label>
-          <input
-            id="input-digitos-cep"
-            type="number"
-            min="1"
-            max="8"
-            value={digitosCep}
-            onChange={(e) => setDigitosCep(Math.min(8, Math.max(1, Number(e.target.value) || 1)))}
-          />
+          <InputNumeroLivre id="input-digitos-cep" valor={digitosCep} aoConfirmar={setDigitosCep} min={1} max={8} />
         </div>
 
         <label className="checkbox-analise-regional">
