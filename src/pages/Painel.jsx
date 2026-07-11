@@ -148,6 +148,10 @@ export default function Painel() {
               linhas={naoCadastradas.linhas}
               producaoPorDn={producaoPorDn}
               producaoPorCnpj={producaoPorCnpj}
+              definirNovaAreaEmLote={naoCadastradas.definirNovaAreaEmLote}
+              confirmarSelecao={naoCadastradas.confirmarSelecao}
+              quantidadeAlteracoesPendentes={naoCadastradas.quantidadeAlteracoesPendentes}
+              salvandoSelecao={naoCadastradas.salvandoSelecao}
             />
           ) : (
             <PaginaPainel
