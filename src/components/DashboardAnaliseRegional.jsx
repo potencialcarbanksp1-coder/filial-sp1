@@ -26,7 +26,7 @@ function PontoPositivacao({ valor }) {
 /** Um card de região candidata: resumo + lista expansível das lojas que a compõem. */
 function CardRegiao({ grupo, limiarPotencial, composto, alternarComposicao }) {
   const [expandido, setExpandido] = useState(false)
-  const atingeMeta = grupo.totalVolume >= limiarPotencial
+  const atingeMeta = grupo.totalCtos >= limiarPotencial
 
   return (
     <div className={`card-regiao ${atingeMeta ? 'card-regiao-atinge-meta' : ''} ${composto ? 'card-regiao-composta' : ''}`}>
@@ -50,11 +50,11 @@ function CardRegiao({ grupo, limiarPotencial, composto, alternarComposicao }) {
         </div>
         <div>
           <span className="card-regiao-metrica-rotulo">Potencial</span>
-          <span className="card-regiao-metrica-valor card-regiao-metrica-destaque">{formatarMoeda(grupo.totalVolume)}</span>
+          <span className="card-regiao-metrica-valor">{formatarMoeda(grupo.totalVolume)}</span>
         </div>
         <div>
           <span className="card-regiao-metrica-rotulo">Ctos Merc</span>
-          <span className="card-regiao-metrica-valor">{formatarNumero(grupo.totalCtos)}</span>
+          <span className="card-regiao-metrica-valor card-regiao-metrica-destaque">{formatarNumero(grupo.totalCtos)}</span>
         </div>
       </div>
 
@@ -92,11 +92,11 @@ export default function DashboardAnaliseRegional({
     <div>
       <div className="controles-analise-regional">
         <div className="card-gcm">
-          <label htmlFor="input-limiar">Meta de potencial</label>
+          <label htmlFor="input-limiar">Meta de Ctos (contratos)</label>
           <input
             id="input-limiar"
             type="number"
-            step="1000000"
+            step="10"
             value={limiarPotencial}
             onChange={(e) => setLimiarPotencial(Number(e.target.value) || 0)}
           />
@@ -130,7 +130,7 @@ export default function DashboardAnaliseRegional({
 
       <p className="resumo-analise-regional">
         {candidatas.length} loja{candidatas.length === 1 ? '' : 's'} candidata{candidatas.length === 1 ? '' : 's'} analisada{candidatas.length === 1 ? '' : 's'}
-        {' '}({incluirZeradas ? 'sem GCM + zero produção' : 'sem GCM ainda'}) · {totalGrupos} região{totalGrupos === 1 ? '' : 'ões'} encontrada{totalGrupos === 1 ? '' : 's'}
+        {' '}({incluirZeradas ? 'sem GCM + zeradas nas mesmas regiões' : 'sem GCM ainda'}) · {totalGrupos} região{totalGrupos === 1 ? '' : 'ões'} encontrada{totalGrupos === 1 ? '' : 's'}
         {' '}· {gruposExibidos.length} exibida{gruposExibidos.length === 1 ? '' : 's'}
       </p>
 
@@ -152,7 +152,7 @@ export default function DashboardAnaliseRegional({
 
       {gruposExibidos.length === 0 ? (
         <div className="vazio-estado">
-          Nenhuma região encontrada com os critérios atuais. Ajuste a meta de potencial, os dígitos do CEP,
+          Nenhuma região encontrada com os critérios atuais. Ajuste a meta de Ctos, os dígitos do CEP,
           ou ative "Puxar lojas zeradas" para ampliar a análise.
         </div>
       ) : (
