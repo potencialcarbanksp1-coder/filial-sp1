@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { calcularPositivacao } from '../lib/positivacao.js'
 
-const LIMIAR_PADRAO = 20_000_000 // R$ 20 milhões
+const LIMIAR_PADRAO = 400 // meta de Ctos Merc (quantidade de contratos), não mais valor em R$
 const DIGITOS_CEP_PADRAO = 3 // agrupa lojas cujo CEP compartilha os 3 primeiros dígitos
 
 function somenteDigitos(texto) {
@@ -14,14 +14,16 @@ function somenteDigitos(texto) {
  * a região/bairro — não precisa de nenhuma API de mapa para isso).
  *
  * Por padrão ("análise nativa"), só entram na análise as lojas sem GCM
- * definido ainda (Atendimento = "Novo GCM"). Com `incluirZeradas` ativado
- * (botão "Puxar lojas zeradas"), também entram lojas que JÁ SÃO clientes,
- * estão "ATIVO", mas tiveram zero produção nos últimos 3 meses (M1/M2/M3)
- * — candidatas a serem remanejadas para uma nova área.
+ * definido ainda (Atendimento = "Novo GCM") — são elas que definem quais
+ * regiões existem. Com `incluirZeradas` ativado (botão "Puxar lojas
+ * zeradas"), lojas que JÁ SÃO clientes, estão "ATIVO", mas tiveram zero
+ * produção nos últimos 3 meses (M1/M2/M3) também entram — mas SÓ para
+ * reforçar uma região que já tem alguma loja "Novo GCM" por perto (mesmo
+ * prefixo de CEP); uma loja zerada nunca cria uma região nova sozinha.
  *
  * Cada grupo resultante mostra: quantidade de lojas, soma do Volume Mercado
- * e soma dos Ctos Merc — para o gestor identificar regiões com potencial
- * suficiente (por padrão, a partir de R$ 20 milhões) para justificar a
+ * e soma dos Ctos Merc — para o gestor identificar regiões com contratos
+ * (Ctos Merc) suficientes (por padrão, a partir de 400) para justificar a
  * criação de uma nova área/contratação de um novo GCM.
  */
 export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj, definirNovaAreaEmLote) {
@@ -39,14 +41,45 @@ export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj, defin
     [linhas, producaoPorDn, producaoPorCnpj]
   )
 
+  // Base da análise: sempre as lojas sem GCM definido ("Novo GCM"). São elas
+  // que definem quais regiões (prefixos de CEP) entram na análise.
+  const candidatasBase = useMemo(
+    () => linhasComPositivacao.filter((l) => (l.atendimento || '').trim() === 'Novo GCM'),
+    [linhasComPositivacao]
+  )
+
+  // Conjunto de prefixos de CEP que já têm ao menos uma loja "Novo GCM" —
+  // usado para decidir em quais regiões as lojas zeradas podem entrar.
+  const chavesComCandidataBase = useMemo(() => {
+    const chaves = new Set()
+    for (const l of candidatasBase) {
+      const digitos = somenteDigitos(l.cep)
+      chaves.add(digitos.length >= digitosCep ? digitos.slice(0, digitosCep) : '(Sem CEP)')
+    }
+    return chaves
+  }, [candidatasBase, digitosCep])
+
+  /**
+   * Lojas ativas com zero produção nos 3 meses SÓ entram na análise quando
+   * "Puxar lojas zeradas" está ativado, e mesmo assim SÓ para reforçar uma
+   * região que já tem alguma loja "Novo GCM" por perto (mesmo prefixo de
+   * CEP) — elas nunca formam uma região nova sozinhas, sem nenhuma loja sem
+   * atendimento ali perto.
+   */
   const candidatas = useMemo(() => {
-    return linhasComPositivacao.filter((l) => {
+    if (!incluirZeradas) return candidatasBase
+
+    const zeradasDaRegiao = linhasComPositivacao.filter((l) => {
       const semAtendimento = (l.atendimento || '').trim() === 'Novo GCM'
-      if (semAtendimento) return true
-      if (incluirZeradas && l.positivacao === 0) return true
-      return false
+      if (semAtendimento) return false // já está em candidatasBase, evita duplicar
+      if (l.positivacao !== 0) return false
+      const digitos = somenteDigitos(l.cep)
+      const chave = digitos.length >= digitosCep ? digitos.slice(0, digitosCep) : '(Sem CEP)'
+      return chavesComCandidataBase.has(chave)
     })
-  }, [linhasComPositivacao, incluirZeradas])
+
+    return [...candidatasBase, ...zeradasDaRegiao]
+  }, [candidatasBase, linhasComPositivacao, incluirZeradas, chavesComCandidataBase, digitosCep])
 
   const grupos = useMemo(() => {
     const mapa = new Map()
@@ -65,7 +98,7 @@ export function useAnaliseRegional(linhas, producaoPorDn, producaoPorCnpj, defin
   }, [candidatas, digitosCep])
 
   const gruposExibidos = useMemo(
-    () => (apenasAcimaDoLimiar ? grupos.filter((g) => g.totalVolume >= limiarPotencial) : grupos),
+    () => (apenasAcimaDoLimiar ? grupos.filter((g) => g.totalCtos >= limiarPotencial) : grupos),
     [grupos, apenasAcimaDoLimiar, limiarPotencial]
   )
 
