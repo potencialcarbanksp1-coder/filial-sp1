@@ -24,12 +24,12 @@ function PontoPositivacao({ valor }) {
 }
 
 /** Um card de região candidata: resumo + lista expansível das lojas que a compõem. */
-function CardRegiao({ grupo, limiarPotencial }) {
+function CardRegiao({ grupo, limiarPotencial, composto, alternarComposicao }) {
   const [expandido, setExpandido] = useState(false)
   const atingeMeta = grupo.totalVolume >= limiarPotencial
 
   return (
-    <div className={`card-regiao ${atingeMeta ? 'card-regiao-atinge-meta' : ''}`}>
+    <div className={`card-regiao ${atingeMeta ? 'card-regiao-atinge-meta' : ''} ${composto ? 'card-regiao-composta' : ''}`}>
       <button type="button" className="card-regiao-cabecalho" onClick={() => setExpandido((e) => !e)}>
         <div className="card-regiao-titulo">
           <span className="card-regiao-cep">CEP {grupo.chave === '(Sem CEP)' ? grupo.chave : `${grupo.chave}***`}</span>
@@ -37,6 +37,11 @@ function CardRegiao({ grupo, limiarPotencial }) {
         </div>
         <span className="card-regiao-seta">{expandido ? '▾' : '▸'}</span>
       </button>
+
+      <label className="card-regiao-compor" onClick={(e) => e.stopPropagation()}>
+        <input type="checkbox" checked={composto} onChange={() => alternarComposicao(grupo.chave)} />
+        Compor Área
+      </label>
 
       <div className="card-regiao-metricas">
         <div>
@@ -80,6 +85,8 @@ export default function DashboardAnaliseRegional({
   digitosCep, setDigitosCep,
   limiarPotencial, setLimiarPotencial,
   apenasAcimaDoLimiar, setApenasAcimaDoLimiar,
+  gruposCompostos, alternarComposicao, composicao,
+  confirmarSelecao, quantidadeAlteracoesPendentes, salvandoSelecao,
 }) {
   return (
     <div>
@@ -127,6 +134,22 @@ export default function DashboardAnaliseRegional({
         {' '}· {gruposExibidos.length} exibida{gruposExibidos.length === 1 ? '' : 's'}
       </p>
 
+      {composicao.quantidadeRegioes > 0 && (
+        <div className="resumo-composicao">
+          <div className="resumo-composicao-metricas">
+            <span><strong>{composicao.quantidadeRegioes}</strong> região{composicao.quantidadeRegioes === 1 ? '' : 'ões'} composta{composicao.quantidadeRegioes === 1 ? '' : 's'}</span>
+            <span><strong>{composicao.quantidadeLojas}</strong> loja{composicao.quantidadeLojas === 1 ? '' : 's'}</span>
+            <span>Potencial somado: <strong>{formatarMoeda(composicao.totalVolume)}</strong></span>
+            <span>Ctos somados: <strong>{formatarNumero(composicao.totalCtos)}</strong></span>
+          </div>
+          {quantidadeAlteracoesPendentes > 0 && (
+            <button type="button" className="btn-primario btn-confirmar-selecao" onClick={confirmarSelecao} disabled={salvandoSelecao}>
+              {salvandoSelecao ? 'Salvando…' : `Confirmar seleção (${quantidadeAlteracoesPendentes})`}
+            </button>
+          )}
+        </div>
+      )}
+
       {gruposExibidos.length === 0 ? (
         <div className="vazio-estado">
           Nenhuma região encontrada com os critérios atuais. Ajuste a meta de potencial, os dígitos do CEP,
@@ -135,7 +158,13 @@ export default function DashboardAnaliseRegional({
       ) : (
         <div className="grade-regioes">
           {gruposExibidos.map((g) => (
-            <CardRegiao key={g.chave} grupo={g} limiarPotencial={limiarPotencial} />
+            <CardRegiao
+              key={g.chave}
+              grupo={g}
+              limiarPotencial={limiarPotencial}
+              composto={gruposCompostos.has(g.chave)}
+              alternarComposicao={alternarComposicao}
+            />
           ))}
         </div>
       )}
