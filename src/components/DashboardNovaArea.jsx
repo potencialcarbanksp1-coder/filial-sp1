@@ -15,6 +15,7 @@ function formatarNumero(valor) {
 export default function DashboardNovaArea({
   potencialTotal, ctosMercTotal, linhasSelecionadas,
   nomeGcm, setNomeGcm, nomeArea, setNomeArea, salvarConfig,
+  mostrarApenasSelecionadas, setMostrarApenasSelecionadas,
 }) {
   const quantidadeSelecionada = linhasSelecionadas.length
 
@@ -88,6 +89,15 @@ export default function DashboardNovaArea({
           onBlur={() => salvarConfig(nomeGcm, nomeArea)}
         />
       </div>
+
+      <button
+        type="button"
+        className={`btn-primario btn-ver-selecionadas ${mostrarApenasSelecionadas ? 'btn-ver-selecionadas-ativo' : ''}`}
+        onClick={() => setMostrarApenasSelecionadas((v) => !v)}
+        title="Mostrar na tabela só as lojas marcadas como Nova Área"
+      >
+        {mostrarApenasSelecionadas ? '✓ Só selecionadas' : '👁 Ver selecionadas'}
+      </button>
 
       <button type="button" className="btn-primario btn-baixar-relatorio" onClick={baixarRelatorio}>
         ⬇ Relatório Excel
