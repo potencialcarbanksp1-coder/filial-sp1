@@ -78,6 +78,21 @@ export function useLojasNaoCadastradas() {
   }
 
   /**
+   * Define diretamente (sem alternar) a marcação "Nova Área" de várias linhas
+   * de uma vez — só localmente, sem tocar no banco ainda (mesma lógica de
+   * pendência do toggle individual). Usado pela "Compor Área" da Análise
+   * Regional: ao marcar um card, todas as lojas daquele grupo entram como
+   * pendentes de "Nova Área = true"; ao desmarcar, voltam para "false".
+   */
+  function definirNovaAreaEmLote(ids, valor) {
+    setAlteracoesPendentes((atual) => {
+      const novo = new Map(atual)
+      for (const id of ids) novo.set(id, valor)
+      return novo
+    })
+  }
+
+  /**
    * Envia para o Supabase todas as marcações pendentes de uma vez (batch):
    * uma chamada para quem virou marcado, outra para quem virou desmarcado.
    * Para linhas que vieram do Painel principal (origem = 'painel'), também
@@ -212,6 +227,7 @@ export function useLojasNaoCadastradas() {
     carregando,
     recarregar: carregar,
     alternarNovaAreaLocal,
+    definirNovaAreaEmLote,
     confirmarSelecao,
     descartarSelecaoPendente,
     quantidadeAlteracoesPendentes: alteracoesPendentes.size,
