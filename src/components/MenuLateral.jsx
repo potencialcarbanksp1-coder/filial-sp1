@@ -2,6 +2,7 @@ const ITENS_MENU = [
   { id: 'painel', rotulo: 'Painel', icone: '▦' },
   { id: 'dashboard', rotulo: 'Dashboard', icone: '◔' },
   { id: 'nao_cadastradas', rotulo: 'Mercado Potencial', icone: '＋', apenasAdmin: true },
+  { id: 'analise_regional', rotulo: 'Análise Regional', icone: '◎', apenasAdmin: true },
   { id: 'upload', rotulo: 'Upload', icone: '↑', apenasAdmin: true },
 ]
 
